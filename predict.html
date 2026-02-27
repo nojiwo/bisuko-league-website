@@ -67,6 +67,19 @@
     margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
   h3 { margin-top: 0; font-size: 1rem; color: #555; }
+  
+  /* サブタブ (League, Data画面用) */
+  .sub-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+  .sub-tab {
+    flex: 1; text-align: center; padding: 10px;
+    background: #e0e0e0; border-radius: 8px; font-size: 0.85rem;
+    color: #555; cursor: pointer;
+  }
+  .sub-tab.active { background: var(--primary); color: white; }
+
+  /* ボタン */
+  .btn-main { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; width: 100%; font-weight: bold; }
+  .btn-sub { background: #eee; color: #333; border: none; padding: 8px 16px; border-radius: 8px; }
 
   /* ===== 下部タブバー ===== */
   .bottom-tab-bar {
@@ -105,13 +118,70 @@
 </header>
 
 <div class="content-area" id="main-content">
+  
   <div id="page-home" class="page active">
-    <div class="card"><h3>お知らせ</h3><p>読込中...</p></div>
-  </div>
+    <div class="card">
+        <h3>📢 お知らせ</h3>
+        <div id="news-content">読み込み中...</div>
+    </div>
+    <div class="card">
+        <h3>🎯 現在の募集状況</h3>
+        <div id="status-content">読み込み中...</div>
+    </div>
   </div>
 
+  <div id="page-league" class="page">
+    <div class="sub-tabs">
+        <div class="sub-tab active">予想提出</div>
+        <div class="sub-tab">予選参加</div>
+    </div>
+    <div class="card">予想提出フォームがここに入ります</div>
+  </div>
+
+  <div id="page-data" class="page">
+    <div class="sub-tabs">
+        <div class="sub-tab active">8週統計</div>
+        <div class="sub-tab">8週掲載順</div>
+        <div class="sub-tab">みんなの予想</div>
+    </div>
+    <div class="card">グラフや表がここに入ります</div>
+  </div>
+
+  <div id="page-qa" class="page">
+    <div class="card"><h3>📝 問い合わせフォーム</h3>[フォームパーツ]</div>
+    <div class="card"><h3>📋 過去の問い合わせ</h3>[一覧パーツ]</div>
+  </div>
+
+  <div id="page-mypage" class="page">
+    <div class="card">
+        <h3>👤 ユーザー情報</h3>
+        <p>ユーザー名: <span id="user-name-field">...</span></p>
+        <button class="btn-sub">変更</button>
+    </div>
+    <div class="card">
+        <h3>📊 過去の成績</h3>
+        <button class="btn-main">詳細を表示</button>
+    </div>
+  </div>
+</div>
+
 <nav class="bottom-tab-bar" id="main-tabbar">
-  </nav>
+  <div class="tab-item active" onclick="switchPage('home')">
+    <img src="icon-home.svg" alt=""><span>Home</span>
+  </div>
+  <div class="tab-item" onclick="switchPage('league')">
+    <img src="icon-league.svg" alt=""><span>League</span>
+  </div>
+  <div class="tab-item" onclick="switchPage('data')">
+    <img src="icon-data.svg" alt=""><span>Data</span>
+  </div>
+  <div class="tab-item" onclick="switchPage('qa')">
+    <img src="icon-q&a.svg" alt=""><span>Q&A</span>
+  </div>
+  <div class="tab-item" onclick="switchPage('mypage')">
+    <img src="icon-mypage.svg" alt=""><span>My Page</span>
+  </div>
+</nav>
 
 <script>
   // 1. スプラッシュ画面の制御
