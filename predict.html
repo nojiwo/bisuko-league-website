@@ -16,6 +16,11 @@
     --inactive: #AAAAAA; /* 薄いグレー */
     --header-bg: #333333; /* 濃いグレー */
     --bg-color: #F4F4F9;
+    
+    /* 青色に変換するためのフィルター値 (Primaryカラーに合わせる) */
+    --filter-primary: invert(42%) sepia(93%) saturate(1352%) hue-rotate(200deg) brightness(100%) contrast(100%);
+    /* グレーに戻すためのフィルター値 */
+    --filter-inactive: invert(67%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%) contrast(85%);
   }
 
   html, body { margin: 0; height: 100%; background: var(--bg-color); font-family: sans-serif; color: #333; overflow: hidden; }
@@ -51,7 +56,7 @@
   }
   .header-left { font-weight: bold; font-size: 1.2rem; }
   .header-right { display: flex; align-items: center; gap: 10px; }
-  .bell-icon { width: 24px; height: 24px; }
+  .bell-icon { width: 24px; height: 24px; filter: invert(100%); } /* 白アイコンにする */
 
   /* ===== コンテンツエリア ===== */
   .content-area {
@@ -94,7 +99,16 @@
     font-size: 0.7rem; cursor: pointer;
   }
   .tab-item.active { color: var(--primary); }
-  .tab-item img { width: 24px; height: 24px; margin-bottom: 2px; }
+  
+  /* アイコンの色切り替え */
+  .tab-item img {
+    width: 24px; height: 24px; margin-bottom: 2px;
+    filter: var(--filter-inactive); /* 初期はグレー */
+    transition: filter 0.3s;
+  }
+  .tab-item.active img {
+    filter: var(--filter-primary); /* アクティブ時は青 */
+  }
 </style>
 </head>
 
@@ -113,7 +127,7 @@
   <div class="header-left">びすこリーグ</div>
   <div class="header-right">
     <span class="user-name">〇〇さん</span>
-    <img src="bell.svg" alt="通知" class="bell-icon">
+    <img src="icon-notice.svg" alt="通知" class="bell-icon">
   </div>
 </header>
 
