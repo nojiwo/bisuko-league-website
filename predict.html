@@ -213,6 +213,9 @@
         mainContent.style.opacity = "1";
         mainHeader.style.opacity = "1";
         mainTabbar.style.opacity = "1";
+        
+        // アニメーション後にデータを読み込む
+        loadData();
       },600);
     },3000); // 3秒間スプラッシュを表示
   });
@@ -225,9 +228,18 @@
     event.currentTarget.classList.add('active');
   }
 
-  // 3. GASからデータを取得する処理 (後ほど実装)
+  // 3. GASからデータを取得する処理 (基礎実装)
   function loadData() {
-    // google.script.run...
+    // 実際にはここからGASのURLへ通信します
+    // 例: fetch('GASのURL').then(...)
+    console.log("データを読み込んでいます...");
+    
+    // 仮のデータ表示
+    setTimeout(() => {
+      document.getElementById('news-content').innerText = "【重要】新年度の募集を開始しました！";
+      document.getElementById('status-content').innerText = "第1号：受付中 (未提出)";
+      document.getElementById('user-name-field').innerText = "びすこ";
+    }, 1000);
   }
 </script>
 
