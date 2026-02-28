@@ -16,10 +16,7 @@
     --inactive: #AAAAAA; /* 薄いグレー */
     --header-bg: #333333; /* 濃いグレー */
     --bg-color: #F4F4F9;
-    
-    /* 青色に変換するためのフィルター値 (Primaryカラーに合わせる) */
     --filter-primary: invert(42%) sepia(93%) saturate(1352%) hue-rotate(200deg) brightness(100%) contrast(100%);
-    /* グレーに戻すためのフィルター値 */
     --filter-inactive: invert(67%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%) contrast(85%);
   }
 
@@ -33,82 +30,61 @@
   }
   #logo-anim{ position:relative; width:800px; height:800px; max-width:60vw; max-height:60vw; }
   .part{ position:absolute; top:0; left:0; width:100%; opacity:0; }
-  
-  /* SVGアニメーション */
   .leftL{ animation:leftIn 0.8s ease forwards; }
   .three{ animation:threeIn 0.8s ease 0.6s forwards; }
   .rightL{ animation:rightIn 0.8s ease 1.3s forwards; }
-  .text{
-    transform:scaleX(0); transform-origin:left center;
-    animation:textExpand 0.8s cubic-bezier(.65,0,.35,1) 1.8s forwards;
-  }
+  .text{ transform:scaleX(0); transform-origin:left center; animation:textExpand 0.8s cubic-bezier(.65,0,.35,1) 1.8s forwards; }
   @keyframes leftIn{ from{transform:translateY(80px);opacity:0;} to{transform:translateY(0);opacity:1;} }
   @keyframes threeIn{ from{transform:translateY(-80px);opacity:0;} to{transform:translateY(0);opacity:1;} }
   @keyframes rightIn{ from{opacity:0;transform:scale(0.9);} to{opacity:1;transform:scale(1);} }
   @keyframes textExpand{ to{opacity:1;transform:scaleX(1);} }
 
-  /* ===== コンテンツヘッダー ===== */
+  /* ===== 認証画面 (Login/Register) ===== */
+  #auth-container {
+    position: fixed; inset: 0; background: var(--bg-color);
+    z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;
+  }
+  .auth-card { background: white; width: 100%; max-width: 350px; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+  .auth-card h2 { margin-top: 0; color: var(--header-bg); text-align: center; }
+  input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+
+  /* ===== メインレイアウト ===== */
   .header {
     background: var(--header-bg); color: white; padding: 10px 15px;
     display: flex; justify-content: space-between; align-items: center;
     position: fixed; top: 0; width: 100%; height: 50px; box-sizing: border-box; z-index: 1000;
-    opacity: 0; transition: opacity 0.6s ease;
   }
-  .header-left { font-weight: bold; font-size: 1.2rem; }
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .bell-icon { width: 24px; height: 24px; filter: invert(100%); } /* 白アイコンにする */
+  .header-left { font-weight: bold; font-size: 1.1rem; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .bell-icon { width: 22px; height: 22px; filter: invert(100%); cursor: pointer; }
 
-  /* ===== コンテンツエリア ===== */
   .content-area {
     margin-top: 50px; margin-bottom: 60px;
     height: calc(100vh - 110px); overflow-y: auto;
     padding: 15px; box-sizing: border-box;
-    opacity: 0; transition: opacity 0.6s ease;
   }
   .page { display: none; }
   .page.active { display: block; }
-  .card {
-    background: white; border-radius: 12px; padding: 15px;
-    margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  }
-  h3 { margin-top: 0; font-size: 1rem; color: #555; }
-  
-  /* サブタブ (League, Data画面用) */
-  .sub-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
-  .sub-tab {
-    flex: 1; text-align: center; padding: 10px;
-    background: #e0e0e0; border-radius: 8px; font-size: 0.85rem;
-    color: #555; cursor: pointer;
-  }
-  .sub-tab.active { background: var(--primary); color: white; }
+  .card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  h3 { margin: 0 0 10px 0; font-size: 1rem; color: #555; }
 
-  /* ボタン */
-  .btn-main { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; width: 100%; font-weight: bold; }
-  .btn-sub { background: #eee; color: #333; border: none; padding: 8px 16px; border-radius: 8px; }
+  .sub-tabs { display: flex; gap: 5px; margin-bottom: 15px; background: #eee; padding: 4px; border-radius: 10px; }
+  .sub-tab { flex: 1; text-align: center; padding: 8px; border-radius: 7px; font-size: 0.85rem; color: #666; cursor: pointer; }
+  .sub-tab.active { background: white; color: var(--primary); font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-  /* ===== 下部タブバー ===== */
   .bottom-tab-bar {
     position: fixed; bottom: 0; width: 100%; height: 60px;
     background: white; display: flex; justify-content: space-around;
     align-items: center; border-top: 1px solid #ddd; z-index: 1000;
-    opacity: 0; transition: opacity 0.6s ease;
   }
-  .tab-item {
-    display: flex; flex-direction: column; align-items: center;
-    text-decoration: none; color: var(--inactive);
-    font-size: 0.7rem; cursor: pointer;
-  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--inactive); font-size: 0.7rem; cursor: pointer; }
   .tab-item.active { color: var(--primary); }
-  
-  /* アイコンの色切り替え */
-  .tab-item img {
-    width: 24px; height: 24px; margin-bottom: 2px;
-    filter: var(--filter-inactive); /* 初期はグレー */
-    transition: filter 0.3s;
-  }
-  .tab-item.active img {
-    filter: var(--filter-primary); /* アクティブ時は青 */
-  }
+  .tab-item img { width: 24px; height: 24px; margin-bottom: 2px; filter: var(--filter-inactive); }
+  .tab-item.active img { filter: var(--filter-primary); }
+
+  .btn-main { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+  .btn-sub { background: #f0f0f0; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; }
+  .hidden { display: none !important; }
 </style>
 </head>
 
@@ -123,123 +99,159 @@
   </div>
 </div>
 
-<header class="header" id="main-header">
-  <div class="header-left">びすこリーグ</div>
-  <div class="header-right">
-    <span class="user-name">〇〇さん</span>
-    <img src="icon-notice.svg" alt="通知" class="bell-icon">
+<div id="auth-container" class="hidden">
+  <div class="auth-card" id="login-form">
+    <h2>ログイン</h2>
+    <input type="text" id="login-username" placeholder="ユーザー名">
+    <input type="password" id="login-password" placeholder="パスワード">
+    <button class="btn-main" onclick="onLogin()">ログイン</button>
+    <p style="text-align:center; font-size:0.8rem; margin-top:15px; color:#666;" onclick="toggleAuth(true)">新規登録はこちら</p>
   </div>
-</header>
-
-<div class="content-area" id="main-content">
-  
-  <div id="page-home" class="page active">
-    <div class="card">
-        <h3>📢 お知らせ</h3>
-        <div id="news-content">読み込み中...</div>
-    </div>
-    <div class="card">
-        <h3>🎯 現在の募集状況</h3>
-        <div id="status-content">読み込み中...</div>
-    </div>
-  </div>
-
-  <div id="page-league" class="page">
-    <div class="sub-tabs">
-        <div class="sub-tab active">予想提出</div>
-        <div class="sub-tab">予選参加</div>
-    </div>
-    <div class="card">予想提出フォームがここに入ります</div>
-  </div>
-
-  <div id="page-data" class="page">
-    <div class="sub-tabs">
-        <div class="sub-tab active">8週統計</div>
-        <div class="sub-tab">8週掲載順</div>
-        <div class="sub-tab">みんなの予想</div>
-    </div>
-    <div class="card">グラフや表がここに入ります</div>
-  </div>
-
-  <div id="page-qa" class="page">
-    <div class="card"><h3>📝 問い合わせフォーム</h3>[フォームパーツ]</div>
-    <div class="card"><h3>📋 過去の問い合わせ</h3>[一覧パーツ]</div>
-  </div>
-
-  <div id="page-mypage" class="page">
-    <div class="card">
-        <h3>👤 ユーザー情報</h3>
-        <p>ユーザー名: <span id="user-name-field">...</span></p>
-        <button class="btn-sub">変更</button>
-    </div>
-    <div class="card">
-        <h3>📊 過去の成績</h3>
-        <button class="btn-main">詳細を表示</button>
-    </div>
+  <div class="auth-card hidden" id="register-form">
+    <h2>新規登録</h2>
+    <input type="text" id="reg-username" placeholder="ユーザー名 (8文字以内)" maxlength="8">
+    <input type="password" id="reg-password" placeholder="パスワード">
+    <input type="text" id="reg-hint" placeholder="秘密のキーワード">
+    <button class="btn-main" onclick="onRegister()">登録</button>
+    <p style="text-align:center; font-size:0.8rem; margin-top:15px; color:#666;" onclick="toggleAuth(false)">ログインに戻る</p>
   </div>
 </div>
 
-<nav class="bottom-tab-bar" id="main-tabbar">
-  <div class="tab-item active" onclick="switchPage('home')">
-    <img src="icon-home.svg" alt=""><span>Home</span>
+<div id="main-app" class="hidden">
+  <header class="header">
+    <div class="header-left">びすこリーグ</div>
+    <div class="header-right">
+      <span id="display-user-name">さん</span>
+      <img src="icon-notice.svg" class="bell-icon">
+    </div>
+  </header>
+
+  <div class="content-area">
+    <div id="page-home" class="page active">
+      <div class="card"><h3>📢 お知らせ</h3><div id="home-news">読み込み中...</div></div>
+      <div class="card"><h3>🎯 募集状況</h3><div id="home-status">読み込み中...</div></div>
+    </div>
+
+    <div id="page-league" class="page">
+      <div class="sub-tabs">
+        <div class="sub-tab active" onclick="switchSubTab(event, 'league-predict')">予想提出</div>
+        <div class="sub-tab" onclick="switchSubTab(event, 'league-event')">予選参加</div>
+      </div>
+      <div id="league-predict" class="sub-page">提出フォーム読込中...</div>
+      <div id="league-event" class="sub-page hidden">イベント情報読込中...</div>
+    </div>
+
+    <div id="page-data" class="page">
+      <div class="sub-tabs">
+        <div class="sub-tab active">8週統計</div>
+        <div class="sub-tab">8週掲載順</div>
+        <div class="sub-tab">みんなの予想</div>
+      </div>
+      <div class="card">統計データが表示されます</div>
+    </div>
+
+    <div id="page-qa" class="page">
+      <div class="card"><h3>📝 問い合わせ</h3><textarea id="qa-content" placeholder="内容を入力"></textarea><button class="btn-main">送信</button></div>
+      <div class="card"><h3>📋 過去の問い合わせ</h3><div id="qa-list">履歴はありません</div></div>
+    </div>
+
+    <div id="page-mypage" class="page">
+      <div class="card"><h3>👤 ユーザー情報</h3><div id="user-info-detail"></div><button class="btn-sub" onclick="logout()">ログアウト</button></div>
+      <div class="card"><h3>📊 過去の成績</h3><button class="btn-main">一覧を表示</button></div>
+    </div>
   </div>
-  <div class="tab-item" onclick="switchPage('league')">
-    <img src="icon-league.svg" alt=""><span>League</span>
-  </div>
-  <div class="tab-item" onclick="switchPage('data')">
-    <img src="icon-data.svg" alt=""><span>Data</span>
-  </div>
-  <div class="tab-item" onclick="switchPage('qa')">
-    <img src="icon-q&a.svg" alt=""><span>Q&A</span>
-  </div>
-  <div class="tab-item" onclick="switchPage('mypage')">
-    <img src="icon-mypage.svg" alt=""><span>My Page</span>
-  </div>
-</nav>
+
+  <nav class="bottom-tab-bar">
+    <div class="tab-item active" onclick="switchPage('home')"><img src="icon-home.svg"><span>Home</span></div>
+    <div class="tab-item" onclick="switchPage('league')"><img src="icon-league.svg"><span>League</span></div>
+    <div class="tab-item" onclick="switchPage('data')"><img src="icon-data.svg"><span>Data</span></div>
+    <div class="tab-item" onclick="switchPage('qa')"><img src="icon-q&a.svg"><span>Q&A</span></div>
+    <div class="tab-item" onclick="switchPage('mypage')"><img src="icon-mypage.svg"><span>My Page</span></div>
+  </nav>
+</div>
 
 <script>
-  // 1. スプラッシュ画面の制御
-  window.addEventListener("load",()=>{
-    setTimeout(()=>{
-      const splash = document.getElementById("splash");
-      const mainContent = document.getElementById("main-content");
-      const mainHeader = document.getElementById("main-header");
-      const mainTabbar = document.getElementById("main-tabbar");
+  let currentUser = JSON.parse(localStorage.getItem('bisco_user'));
 
-      splash.style.opacity = "0";
-
-      setTimeout(()=>{
-        splash.style.display = "none";
-        mainContent.style.opacity = "1";
-        mainHeader.style.opacity = "1";
-        mainTabbar.style.opacity = "1";
-        
-        // アニメーション後にデータを読み込む
-        loadData();
-      },600);
-    },3000); // 3秒間スプラッシュを表示
+  // 1. スプラッシュ & 初期化
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      document.getElementById("splash").style.opacity = "0";
+      setTimeout(() => {
+        document.getElementById("splash").style.display = "none";
+        if (currentUser) {
+          showApp();
+        } else {
+          document.getElementById("auth-container").classList.remove("hidden");
+        }
+      }, 600);
+    }, 3000);
   });
 
-  // 2. タブ切り替え制御
+  function showApp() {
+    document.getElementById("auth-container").classList.add("hidden");
+    document.getElementById("main-app").classList.remove("hidden");
+    document.getElementById("display-user-name").innerText = currentUser.name + " さん";
+    loadHomeData();
+  }
+
+  // 2. 認証処理
+  function toggleAuth(isReg) {
+    document.getElementById("login-form").classList.toggle("hidden", isReg);
+    document.getElementById("register-form").classList.toggle("hidden", !isReg);
+  }
+
+  function onLogin() {
+    const u = document.getElementById("login-username").value;
+    const p = document.getElementById("login-password").value;
+    google.script.run.withSuccessHandler(res => {
+      currentUser = res;
+      localStorage.setItem('bisco_user', JSON.stringify(res));
+      showApp();
+    }).withFailureHandler(e => alert(e.message)).login(u, p);
+  }
+
+  function onRegister() {
+    const u = document.getElementById("reg-username").value;
+    const p = document.getElementById("reg-password").value;
+    const h = document.getElementById("reg-hint").value;
+    google.script.run.withSuccessHandler(res => {
+      alert(res.message);
+      toggleAuth(false);
+    }).withFailureHandler(e => alert(e.message)).registerUser(u, p, h);
+  }
+
+  // 3. ページ切り替え
   function switchPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
     document.getElementById('page-' + pageId).classList.add('active');
     event.currentTarget.classList.add('active');
+    if(pageId === 'home') loadHomeData();
   }
 
-  // 3. GASからデータを取得する処理 (基礎実装)
-  function loadData() {
-    // 実際にはここからGASのURLへ通信します
-    // 例: fetch('GASのURL').then(...)
-    console.log("データを読み込んでいます...");
-    
-    // 仮のデータ表示
-    setTimeout(() => {
-      document.getElementById('news-content').innerText = "【重要】新年度の募集を開始しました！";
-      document.getElementById('status-content').innerText = "第1号：受付中 (未提出)";
-      document.getElementById('user-name-field').innerText = "びすこ";
-    }, 1000);
+  function switchSubTab(e, subPageId) {
+    document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.sub-page').forEach(p => p.classList.add('hidden'));
+    e.currentTarget.classList.add('active');
+    document.getElementById(subPageId).classList.remove('hidden');
+  }
+
+  // 4. データ取得 (Home)
+  function loadHomeData() {
+    google.script.run.withSuccessHandler(data => {
+      document.getElementById('home-news').innerText = data.news;
+      document.getElementById('home-status').innerHTML = `
+        <strong>${data.issueName}</strong><br>
+        提出状況: ${data.hasSubmitted ? '✅ 提出済み' : '⚠️ 未提出'}<br>
+        受付状態: ${data.isOpen ? 'OPEN' : 'CLOSED'}
+      `;
+    }).getMyPageData(currentUser.id, currentUser.name);
+  }
+
+  function logout() {
+    localStorage.clear();
+    location.reload();
   }
 </script>
 
