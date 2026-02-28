@@ -171,7 +171,6 @@
 </div>
 
 <script>
-  // ★重要★ GASのウェブアプリURLをここに貼り付けてください
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbxRrdI7fetm8f18TzwMu5I4nRhSn4JqiUYvHGgXSo4BHtHHeObycQevz9__39bskNxB7Q/exec'; 
 
   let user = JSON.parse(localStorage.getItem('jump_user'));
@@ -180,34 +179,23 @@
 
   window.onload = () => { if (user) showApp(); else showAuth(); };
 
-  // GAS通信用共通関数 (fetch版)
-  async function callGas(funcName, ...args) {
-    try {
-      const response = await fetch(GAS_URL, {
-        method: 'POST',
-        mode: 'no-cors', // クロスドメイン制限の回避用
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ func: funcName, args: args })
-      });
-      // no-corsモードではレスポンスの内容が読めないため、
-      // 実際にはGAS側でJSONP対応をするか、プロキシを通す必要があります。
-      // このままだとエラーハンドリングができません。
-      return { success: true }; 
-    } catch (e) {
-      console.error(e);
-      alert("通信エラーが発生しました。");
-      throw e;
-    }
+  // --- ★修正：通信関数をJSONPに対応させる ---
+  function callGas(funcName, ...args) {
+    return new Promise((resolve, reject) => {
+      const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+      window[callbackName] = function(data) {
+        delete window[callbackName];
+        document.body.removeChild(script);
+        if (data.error) reject(new Error(data.error));
+        else resolve(data);
+      };
+
+      const script = document.createElement('script');
+      script.src = `${GAS_URL}?func=${funcName}&args=${encodeURIComponent(JSON.stringify(args))}&callback=${callbackName}`;
+      document.body.appendChild(script);
+    });
   }
 
-  // ★注意★
-  // GitHub PagesはGASのWebアプリとドメインが異なるため、
-  // fetchのJSONレスポンスを受け取るにはCORS対応が必須です。
-  // GASのdoPostでJSONを返すだけではGitHub側で読み込めません。
-  //
-  // とりあえず機能の枠組みを動かすため、以下にダミー処理を含めた
-  // 構造を記載します。正常に動かすには別の対策が必要です。
-  
   function toggleLoading(show) {
     const loader = document.getElementById('loading-overlay');
     if (show) loader.classList.remove('hidden');
@@ -234,26 +222,192 @@
     if(pId === 'page-scores') goPastScores();
   }
 
-  // --- 以降の関数はすべて async/await を使用して callGas を呼び出す形に修正が必要 ---
-  
   async function onLogin() {
     const n = document.getElementById('loginName').value, p = document.getElementById('loginPw').value;
     if(!n || !p) return alert("入力してください");
     toggleLoading(true);
-    // login関数の返り値を受け取るように修正が必要
+    document.getElementById('loginBtn').disabled = true;
     try {
-        await callGas('login', n, p);
-        // ダミーでログイン成功とする
-        user = {id: 'dummy', name: n};
-        localStorage.setItem('jump_user', JSON.stringify(user));
-        showApp();
-    } catch(e) {} finally { toggleLoading(false); }
+      const res = await callGas('login', n, p);
+      toggleLoading(false);
+      user = res;
+      localStorage.setItem('jump_user', JSON.stringify(res));
+      showApp();
+    } catch(e) {
+      toggleLoading(false);
+      alert(e.message);
+      document.getElementById('loginBtn').disabled = false;
+    }
   }
 
-  // 他の関数(onRegister, onSavePredict等)も callGas を使った非同期処理に書き換えてください。
-  // ※CORS制限のため、この時点では正しくデータが取得できません。                
+  async function onRegister() {
+    const n = document.getElementById('regName').value, p = document.getElementById('regPw').value, h = document.getElementById('regHint').value;
+    if(!n || !p || !h) return alert("未入力項目があります");
+    toggleLoading(true);
+    try {
+      const res = await callGas('registerUser', n, p, h);
+      toggleLoading(false);
+      alert(res.message);
+      showAuthView('view-login');
+    } catch(e) {
+      toggleLoading(false);
+      alert(e.message);
+    }
+  }
+
+  async function onReset() {
+    const n = document.getElementById('resetName').value, h = document.getElementById('resetHint').value, p = document.getElementById('resetNewPw').value;
+    toggleLoading(true);
+    try {
+      const msg = await callGas('resetPassword', n, h, p);
+      toggleLoading(false);
+      alert(msg);
+      showAuthView('view-login');
+    } catch(e) {
+      toggleLoading(false);
+      alert(e.message);
+    }
+  }
+
+  async function loadMyPage() {
+    try {
+      const data = await callGas('getMyPageData', user.id, user.name);
+      currentData = data;
+      document.getElementById('userGreet').innerText = `${user.name} さん`;
+      document.getElementById('newsContent').innerText = data.news;
+      document.getElementById('issueText').innerText = data.issueName;
+      document.getElementById('submitStatus').innerHTML = data.hasSubmitted ? '<span style="color:#38a169">提出済み ✅</span>' : '<span style="color:#e53e3e">未提出 ⚠️</span>';
+      const evBox = document.getElementById('eventStatus');
+      evBox.innerHTML = data.activeEvent ? `${data.activeEvent.name}: ${data.activeEvent.isParticipating ? '参加中' : '未参加'}` : "募集中のイベントはありません。";
+    } catch(e) {}
+  }
+
+  async function loadEventPage() {
+    try {
+      const data = await callGas('getMyPageData', user.id, user.name);
+      const box = document.getElementById('eventList');
+      if(!data.activeEvent || data.activeEvent.type !== "予選") { box.innerHTML = "現在募集中の予選はありません。"; return; }
+      const ev = data.activeEvent;
+      box.innerHTML = `<div class="event-card"><h3>${ev.name}</h3><button class="btn ${ev.isParticipating?'btn-outline':''}" onclick="onToggleEvent(${!ev.isParticipating})">${ev.isParticipating?'辞退する':'参加を希望する'}</button></div>`;
+    } catch(e) {}
+  }
+
+  async function onToggleEvent(join) {
+    toggleLoading(true);
+    try {
+      const msg = await callGas('toggleEventParticipation', user.name, currentData.activeEvent.id, join);
+      toggleLoading(false);
+      alert(msg);
+      loadEventPage();
+    } catch(e) { toggleLoading(false); alert(e.message); }
+  }
+
+  async function goPredict() {
+    const listCheck = document.getElementById('sortList');
+    if (listCheck.children.length > 5 && !listCheck.innerText.includes("読み込み中")) return; 
+    try {
+      currentData = await callGas('getMyPageData', user.id, user.name);
+      executePredict();
+    } catch(e) {}
+  }
+
+  async function executePredict() {
+    const container = document.getElementById('sortList');
+    const saveBtn = document.getElementById('savePredictBtn');
+    const guide = document.getElementById('predictGuideArea');
+    if (!currentData.isOpen) {
+      container.innerHTML = `<div style="text-align:center; padding:40px; color:#e53e3e; font-weight:bold;">🔒 受付期間外です</div>`;
+      saveBtn.style.display = 'none';
+      guide.classList.add('hidden');
+      return;
+    }
+    saveBtn.style.display = 'block';
+    guide.classList.remove('hidden');
+    container.innerHTML = "作品データ読み込み中...";
+    try {
+      const data = await callGas('getPredictionInitData', user.id, currentData.jumpId);
+      container.innerHTML = "";
+      data.list.forEach((name, idx) => {
+        const item = document.createElement('div');
+        item.className = "sort-item"; item.dataset.name = name;
+        let badge = data.colors.top.includes(name) ? '<span class="badge badge-top">巻頭</span>' : (data.colors.center.includes(name) ? '<span class="badge badge-center">センター</span>' : '');
+        item.innerHTML = `<div class="handle">⠿</div><div class="rank-num">${idx+1}</div><div class="item-name">${name}</div>${badge}`;
+        container.appendChild(item);
+      });
+      if (sortableInstance) sortableInstance.destroy();
+      sortableInstance = new Sortable(container, { 
+        handle: '.handle', animation: 150, 
+        onEnd: () => { document.querySelectorAll('.rank-num').forEach((el, i) => el.innerText = i + 1); } 
+      });
+    } catch(e) { container.innerHTML = "読み込み失敗"; }
+  }
+
+  async function onSavePredict() {
+    const list = Array.from(document.getElementById('sortList').children).map(i => i.dataset.name);
+    if(list.length < 5) return alert("データが不十分です。");
+    toggleLoading(true);
+    try {
+      const msg = await callGas('submitPrediction', user.id, currentData.jumpId, list);
+      toggleLoading(false);
+      alert(msg);
+      switchTab('page-mypage');
+    } catch(e) { toggleLoading(false); alert(e.message); }
+  }
+
+  async function goStats() {
+    try {
+      const data = await callGas('getStatsTable');
+      document.getElementById('statsHead').innerHTML = `<tr><th>#</th><th>作品名</th>${data.issues.map(iss=>`<th>${iss}</th>`).join('')}<th>平均</th></tr>`;
+      document.getElementById('statsBody').innerHTML = data.stats.map(s => `<tr><td>${s.rank}</td><td style="text-align:left;padding-left:10px;">${s.title}</td>${s.ranks.map((r,i)=>`<td class="${s.colors[i]==1?'color-top':(s.colors[i]==2?'color-center':'')}">${r}</td>`).join('')}<td>${s.average}</td></tr>`).join('');
+    } catch(e) {}
+  }
+
+  async function goPastJumps() {
+    try {
+      const data = await callGas('getPastJumpsTable');
+      document.getElementById('pastJumpsHead').innerHTML = `<tr>${data.map(d => `<th>${d.issue}</th>`).join('')}</tr>`;
+      let html = ""; for(let i=0; i<25; i++) { html += "<tr>" + data.map(col => { const w = col.list[i] || ""; const cls = col.top.includes(w) ? "color-top" : (col.center.includes(w) ? "color-center" : ""); return `<td class="${cls}">${w}</td>`; }).join('') + "</tr>"; }
+      document.getElementById('pastJumpsBody').innerHTML = html;
+    } catch(e) {}
+  }
+
+  async function goEveryone() {
+    const area = document.getElementById('everyoneArea');
+    if (currentData.isOpen) { area.innerHTML = `<div style="text-align:center; padding:30px; color:#666;">締め切り後に公開されます。</div>`; return; }
+    area.innerHTML = "読み込み中...";
+    try {
+      const data = await callGas('getEveryoneTable', currentData.jumpId);
+      if(!data.predictions.length) { area.innerHTML = "まだ予想がありません。"; return; }
+      let html = `<div class="scroll-x"><table class="data-table"><thead><tr>`;
+      html += data.predictions.map(p => `<th>${p.userName}</th>`).join('');
+      html += `</tr></thead><tbody>`;
+      for(let i=0; i<25; i++) { html += "<tr>" + data.predictions.map(p => { const w = p.list[i] || ""; const cls = data.top.includes(w) ? "color-top" : (data.center.includes(w) ? "color-center" : ""); return `<td class="${cls}">${w}</td>`; }).join('') + "</tr>"; }
+      html += `</tbody></table></div>`;
+      area.innerHTML = html;
+    } catch(e) { area.innerHTML = "読み込み失敗"; }
+  }
+
+  async function goPastScores() {
+    try {
+      const data = await callGas('getPastScores', user.id);
+      document.getElementById('scoreTableBody').innerHTML = data.map(r => `<tr><td>${r.year}</td><td>${r.issue}</td><td>${r.score}</td></tr>`).join('');
+    } catch(e) {}
+  }
 
   function logout() { localStorage.clear(); location.reload(); }
+
+  async function onSendInquiry() {
+    const cat = document.getElementById('contactCategory').value;
+    const content = document.getElementById('contactContent').value;
+    if (!content.trim()) return alert("内容を入力してください。");
+    toggleLoading(true);
+    try {
+      const msg = await callGas('submitInquiry', user.id, cat, content);
+      toggleLoading(false);
+      alert(msg);
+      document.getElementById('contactContent').value = "";
+    } catch(e) { toggleLoading(false); alert(e.message); }
+  }
 </script>
 </body>
 </html>
