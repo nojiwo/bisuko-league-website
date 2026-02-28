@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="JUMP予想">
-  <meta name="theme-color" content="#7000ff">
+  <meta name="theme-color" content="#333333">
 
   <meta name="format-detection" content="telephone=no">
 
@@ -16,50 +16,87 @@
   <base target="_top">
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
-    :root { --main: #7000ff; --bg: #f5f7fb; --tab-inactive: #718096; }
-    body { font-family: sans-serif; background: var(--bg); margin: 0; color: #000; padding-bottom: 30px; }
-    .auth-container { max-width: 400px; margin: 40px auto; padding: 0 20px; }
+    /* 画像風のカラー定義 */
+    :root { 
+      --main-blue: #3182ce; 
+      --inactive-gray: #718096; 
+      --bg: #f5f7fb; 
+      --header-bg: #1a202c; 
+    }
+    
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; color: #000; padding-bottom: 70px; }
+    
     .hidden { display: none !important; }
-    .nav-container { position: sticky; top: 0; background: white; z-index: 1000; border-bottom: 1px solid #e2e8f0; }
-    .nav-tabs { display: flex; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
-    .tab-item { padding: 15px 20px; font-size: 0.9rem; font-weight: bold; color: var(--tab-inactive); cursor: pointer; border-bottom: 3px solid transparent; }
-    .tab-item.active { color: var(--main); border-bottom: 3px solid var(--main); }
+    
+    /* ヘッダー */
+    .app-header {
+      position: sticky; top: 0; background: var(--header-bg); z-index: 1000;
+      color: white; padding: 0 15px; display: flex; align-items: center; justify-content: space-between;
+      height: 44px;
+    }
+    .header-user { background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; }
+    .header-icon { width: 24px; height: 24px; filter: invert(1); }
+
+    /* 認証コンテナ */
+    .auth-container { max-width: 400px; margin: 40px auto; padding: 0 20px; }
+    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .title-left { color: var(--main-blue); border-left: 5px solid var(--main-blue); padding-left: 10px; margin-bottom: 20px; font-weight: bold; font-size: 1.2rem; }
+    
+    /* 共通コンポーネント */
+    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
+    .btn { background: var(--main-blue); color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+    .btn:disabled { opacity: 0.6; }
+    .btn-outline { background: white; color: var(--main-blue); border: 2px solid var(--main-blue); }
+
+    /* ページ表示設定 */
     .page { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
     .page.active { display: block; }
-    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    .title-left { color: var(--main); border-left: 5px solid var(--main); padding-left: 10px; margin-bottom: 20px; font-weight: bold; font-size: 1.2rem; }
-    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
-    .btn { background: var(--main); color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
-    .btn:disabled { opacity: 0.6; }
-    .btn-outline { background: white; color: var(--main); border: 2px solid var(--main); }
-    .scroll-x { overflow-x: auto; margin-bottom: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
-    .data-table, .stats-table { width: 100%; border-collapse: collapse; background: white; font-size: 0.8rem; }
-    .data-table th, .data-table td, .stats-table th, .stats-table td { border: 1px solid #e2e8f0; padding: 10px 4px; text-align: center; }
-    .color-top { background-color: #ff4d4d !important; font-weight: bold; }
-    .color-center { background-color: #fefcbf !important; font-weight: bold; }
+
+    /* サブタブ (ヘッダー直下) */
+    .sub-nav { display: flex; background: white; border-bottom: 1px solid #e2e8f0; position: sticky; top: 44px; z-index: 999; }
+    .sub-tab-item { flex: 1; text-align: center; padding: 15px 10px; font-size: 0.85rem; color: var(--inactive-gray); cursor: pointer; font-weight: bold; }
+    .sub-tab-item.active { color: var(--main-blue); border-bottom: 3px solid var(--main-blue); }
+
+    /* ボトムナビゲーション (画像風) */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
+      background: white; border-top: 1px solid #e2e8f0;
+      display: flex; justify-content: space-around; z-index: 1000;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--inactive-gray); cursor: pointer; text-decoration: none; }
+    .nav-item.active { color: var(--main-blue); }
+    .nav-icon { width: 24px; height: 24px; margin-bottom: 3px; }
+    .nav-item.active .nav-icon { filter: invert(48%) sepia(87%) saturate(1281%) hue-rotate(184deg) brightness(90%) contrast(85%); }
+    .nav-label { font-size: 10px; font-weight: bold; }
+
+    /* テーブル・リスト・その他スタイル */
+    .scroll-x { overflow-x: auto; margin-bottom: 10px; border: 1px solid #e2e8f0; border-radius: 8px;}
+    .data-table { width: 100%; border-collapse: collapse; background: white; font-size: 0.8rem; }
+    .data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 10px 4px; text-align: center; }
     
-    .sort-item { background: white; border: 1px solid #e2e8f0; margin-bottom: 6px; border-radius: 8px; display: flex; align-items: center; overflow: hidden; touch-action: auto; }
-    .handle { background: #a855f7; color: white; padding: 15px 12px; cursor: grab; touch-action: none; }
+    .color-top { background-color: #ffcccc !important; font-weight: bold; }
+    .color-center { background-color: #fff3cd !important; font-weight: bold; }
+    
+    .sort-item { background: white; border: 1px solid #e2e8f0; margin-bottom: 6px; border-radius: 8px; display: flex; align-items: center; overflow: hidden; }
+    .handle { background: #eee; color: #555; padding: 15px 12px; cursor: grab; }
     .rank-num { width: 35px; text-align: center; font-weight: bold; }
     .item-name { flex: 1; padding: 12px 5px; font-size: 16px; }
-    
     .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-right: 10px; font-weight: bold; }
-    .badge-top { background: #ff4d4d; color: white; }
-    .badge-center { background: #fefcbf; color: #000; }
-    .event-card { background: #f0f4ff; border: 1px solid #d0daff; padding: 15px; border-radius: 10px; }
+    
+    .predict-guide { background: #edf2f7; padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #2d3748; margin-bottom: 15px; }
 
-    .predict-guide { background: #edf2f7; border: 1px solid #cbd5e0; padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #2d3748; margin-bottom: 15px; line-height: 1.5; }
-
-    #loading-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(255, 255, 255, 0.8);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 9999;
-    }
-    .spinner {
-      width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid var(--main);
-      border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 10px;
-    }
+    /* My Page アコーディオン */
+    .accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; cursor: pointer; }
+    .accordion-content { display: none; padding: 15px 0; background: #fafafa; border-radius: 8px; margin-top: 10px; }
+    .accordion-content.open { display: block; }
+    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+    .info-label { color: #666; }
+    .info-value { font-weight: bold; color: #333; }
+    
+    /* ローディング */
+    #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+    .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid var(--main-blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
@@ -67,7 +104,7 @@
 
 <div id="loading-overlay" class="hidden">
   <div class="spinner"></div>
-  <div style="font-weight:bold; color:var(--main);">通信中...</div>
+  <div style="font-weight:bold; color:var(--main-blue); margin-top:10px;">通信中...</div>
 </div>
 
 <div id="auth-section" class="auth-container">
@@ -76,110 +113,143 @@
     <input type="text" id="loginName" placeholder="ユーザー名">
     <input type="password" id="loginPw" placeholder="パスワード">
     <button class="btn" id="loginBtn" onclick="onLogin()">ログイン</button>
-    <button class="btn btn-outline" id="regJumpBtn" onclick="showAuthView('view-register')">新規登録</button>
-    <p style="text-align:center; font-size:0.8rem; color:var(--main); margin-top:20px; cursor:pointer;" onclick="showAuthView('view-reset')">パスワードを忘れた方はこちら</p>
+    <button class="btn btn-outline" onclick="showAuthView('view-register')">新規登録</button>
   </div>
   <div id="view-register" class="card hidden">
     <div class="title-left">Register</div>
-    <div style="background:#fff5f5; color:#c53030; padding:12px; font-size:0.85rem; border-radius:8px; margin-bottom:15px; border:1px solid #feb2b2;">
-      ⚠️ユーザー名について:
-      ユーザー名はメールアドレスではありません。8文字以内での登録をお願いします。
-    </div>
     <input type="text" id="regName" maxlength="8" placeholder="アカウント名(8文字以内)">
     <input type="password" id="regPw" placeholder="パスワード">
     <input type="text" id="regHint" placeholder="秘密のキーワード(好きな作品等)">
     <button class="btn" id="regSubmitBtn" onclick="onRegister()">登録</button>
     <button class="btn btn-outline" onclick="showAuthView('view-login')">戻る</button>
   </div>
-  <div id="view-reset" class="card hidden">
-    <div class="title-left">Reset Password</div>
-    <input type="text" id="resetName" placeholder="ユーザー名">
-    <input type="text" id="resetHint" placeholder="秘密のキーワード(好きな作品等)">
-    <input type="password" id="resetNewPw" placeholder="新しいパスワード">
-    <button class="btn" id="resetSubmitBtn" onclick="onReset()">更新</button>
-    <button class="btn btn-outline" onclick="showAuthView('view-login')">戻る</button>
-  </div>
 </div>
 
 <div id="app-section" class="hidden">
-  <nav class="nav-container">
-    <div class="nav-tabs">
-      <div class="tab-item active" id="tab-mypage" onclick="switchTab('page-mypage')">ホーム</div>
-      <div class="tab-item" id="tab-predict" onclick="switchTab('page-predict')">予想提出</div>
-      <div class="tab-item" id="tab-event" onclick="switchTab('page-event')">予選参加</div>
-      <div class="tab-item" id="tab-stats" onclick="switchTab('page-stats')">8週統計</div>
-      <div class="tab-item" id="tab-past-jumps" onclick="switchTab('page-past-jumps')">8週掲載順</div>
-      <div class="tab-item" id="tab-everyone" onclick="switchTab('page-everyone')">みんなの予想</div>
-      <div class="tab-item" id="tab-scores" onclick="switchTab('page-scores')">過去の成績</div>
-      <div class="tab-item" id="tab-contact" onclick="switchTab('page-contact')">問い合わせ</div>
-    </div>
-  </nav>
+  <header class="app-header">
+    <div class="header-user" id="headerUserName"></div>
+    <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-notice.svg" class="header-icon">
+  </header>
 
-  <div id="page-mypage" class="page active">
+  <div id="page-home" class="page active">
     <div class="card">
       <div class="title-left" id="userGreet"></div>
       <div id="newsContent" style="font-size:0.9rem; padding:10px; border-radius:8px; margin-bottom:15px; background:#fffaf0; border:1px dashed #ccc;"></div>
       <div id="statusInfo" style="background:#edf2f7; padding:15px; border-radius:10px; text-align:center;">
         <div id="issueText" style="font-size:1.1rem; font-weight:bold; margin-bottom:5px;"></div>
         <div id="submitStatus"></div>
-        <div id="eventStatus" style="border-top: 1px solid #cbd5e0; margin-top:10px; padding-top:10px; font-size:0.85rem;"></div>
       </div>
-      <button class="btn btn-outline" onclick="logout()" style="color:red; border-color:red; margin-top:20px;">ログアウト</button>
     </div>
   </div>
 
-  <div id="page-predict" class="page">
-    <div class="card">
-      <div class="title-left">掲載順予想</div>
-      <div id="predictGuideArea" class="predict-guide hidden">
-        ここは予想提出タブです。<br>
-        ドラッグ&ドロップで作品を並び替えて回答してください。
+  <div id="page-league" class="page">
+    <div class="sub-nav">
+      <div class="sub-tab-item active" onclick="switchSubTab('league', 'predict')">予想提出</div>
+      <div class="sub-tab-item" onclick="switchSubTab('league', 'event')">予選参加</div>
+    </div>
+    <div id="sub-page-league-predict" class="sub-page">
+      <div class="card">
+        <div id="predictGuideArea" class="predict-guide hidden">ドラッグ&ドロップで並び替えてください。</div>
+        <div id="sortList">読み込み中...</div>
+        <button class="btn" id="savePredictBtn" onclick="onSavePredict()">予想を送信する</button>
       </div>
-      <div id="sortList">読み込み中...</div>
-      <button class="btn" id="savePredictBtn" onclick="onSavePredict()">予想を送信する</button>
+    </div>
+    <div id="sub-page-league-event" class="sub-page hidden">
+      <div class="card"><div id="eventList">読み込み中...</div></div>
     </div>
   </div>
-  <div id="page-event" class="page"><div class="card"><div class="title-left">予選参加希望</div><div id="eventList">読み込み中...</div></div></div>
-  <div id="page-stats" class="page"><div class="card"><div class="title-left">直近8週の統計</div><div class="scroll-x"><table class="stats-table"><thead id="statsHead"></thead><tbody id="statsBody"></tbody></table></div></div></div>
-  <div id="page-past-jumps" class="page"><div class="card"><div class="title-left">過去の掲載順</div><div class="scroll-x"><table class="data-table" style="width:800px;"><thead id="pastJumpsHead"></thead><tbody id="pastJumpsBody"></tbody></table></div></div></div>
-  <div id="page-everyone" class="page"><div class="card"><div class="title-left">みんなの予想</div><div id="everyoneArea"></div></div></div>
-  <div id="page-scores" class="page"><div class="card"><div class="title-left">過去の成績</div><table class="data-table"><thead><tr><th>年度</th><th>号数</th><th>点数</th></tr></thead><tbody id="scoreTableBody"></tbody></table></div></div>
-  
-  <div id="page-contact" class="page">
+
+  <div id="page-data" class="page">
+    <div class="sub-nav">
+      <div class="sub-tab-item active" onclick="switchSubTab('data', 'stats')">統計</div>
+      <div class="sub-tab-item" onclick="switchSubTab('data', 'past')">掲載順</div>
+      <div class="sub-tab-item" onclick="switchSubTab('data', 'everyone')">みんな</div>
+    </div>
+    <div id="sub-page-data-stats" class="sub-page">
+      <div class="card"><div class="scroll-x"><table class="data-table"><thead id="statsHead"></thead><tbody id="statsBody"></tbody></table></div></div>
+    </div>
+    <div id="sub-page-data-past" class="sub-page hidden">
+      <div class="card"><div class="scroll-x"><table class="data-table" style="width:800px;"><thead id="pastJumpsHead"></thead><tbody id="pastJumpsBody"></tbody></table></div></div>
+    </div>
+    <div id="sub-page-data-everyone" class="sub-page hidden">
+      <div class="card"><div id="everyoneArea"></div></div>
+    </div>
+  </div>
+
+  <div id="page-qna" class="page">
     <div class="card">
       <div class="title-left">問い合わせ</div>
-      <div style="font-size:0.85rem; color:#4a5568; line-height:1.6; margin-bottom:20px;">
-        ここは予想サイトに関する問い合わせをする場所です。
-      </div>
-      <label style="font-size:0.8rem; font-weight:bold; color:var(--tab-inactive);">問い合わせ要件</label>
       <select id="contactCategory">
         <option value="「ホーム」タブに関して">「ホーム」タブに関して</option>
-        <option value="「予想提出」タブに関して">「予想提出」タブに関して</option>
-        <option value="「予選参加」タブに関して">「予選参加」タブに関して</option>
-        <option value="「8週統計」タブに関して">「8週統計」タブに関して</option>
-        <option value="「8週掲載順」タブに関して">「8週掲載順」タブに関して</option>
-        <option value="「みんなの予想」タブに関して">「みんなの予想」タブに関して</option>
-        <option value="「過去の成績」タブに関して">「過去の成績」タブに関して</option>
-        <option value="各結果に関して">各結果に関して</option>
         <option value="その他">その他</option>
       </select>
-      <label style="font-size:0.8rem; font-weight:bold; color:var(--tab-inactive);">具体的な内容</label>
-      <textarea id="contactContent" rows="5" placeholder="こちらに入力してください"></textarea>
-      <button class="btn" id="sendInquiryBtn" onclick="onSendInquiry()">送信する</button>
+      <textarea id="contactContent" rows="5"></textarea>
+      <button class="btn" onclick="onSendInquiry()">送信する</button>
     </div>
   </div>
+
+  <div id="page-mypage" class="page">
+    <div class="card">
+      <div class="title-left">ユーザー情報</div>
+      <div class="info-row"><span class="info-label">ユーザー名</span><span class="info-value" id="infoName"></span></div>
+      <div class="info-row"><span class="info-label">ユーザーID</span><span class="info-value" id="infoId"></span></div>
+      <div class="info-row"><span class="info-label">秘密のキーワード</span><span class="info-value" id="infoHint"></span></div>
+      <div class="info-row"><span class="info-label">パスワード</span><span class="info-value">********</span></div>
+      <button class="btn btn-outline" onclick="logout()">ログアウト</button>
+    </div>
+    <div class="card">
+      <div class="accordion-header" onclick="toggleAccordion()">
+        <span style="font-weight:bold; color:var(--main-blue);">過去の成績</span>
+        <span id="accordionIcon">▼</span>
+      </div>
+      <div id="pastScoresContent" class="accordion-content">
+        <table class="data-table"><thead><tr><th>号数</th><th>点数</th></tr></thead><tbody id="scoreTableBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item active" onclick="switchTab('page-home', this)">
+      <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-home.svg" class="nav-icon">
+      <span class="nav-label">Home</span>
+    </a>
+    <a class="nav-item" onclick="switchTab('page-league', this)">
+      <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-league.svg" class="nav-icon">
+      <span class="nav-label">League</span>
+    </a>
+    <a class="nav-item" onclick="switchTab('page-data', this)">
+      <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-data.svg" class="nav-icon">
+      <span class="nav-label">Data</span>
+    </a>
+    <a class="nav-item" onclick="switchTab('page-qna', this)">
+      <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-q&a.svg" class="nav-icon">
+      <span class="nav-label">Q&A</span>
+    </a>
+    <a class="nav-item" onclick="switchTab('page-mypage', this)">
+      <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-mypage.svg" class="nav-icon">
+      <span class="nav-label">My Page</span>
+    </a>
+  </nav>
 </div>
 
 <script>
+  // ★重要★ GASのURLとGitHubの画像URLを正しく設定してください
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbxRrdI7fetm8f18TzwMu5I4nRhSn4JqiUYvHGgXSo4BHtHHeObycQevz9__39bskNxB7Q/exec'; 
 
   let user = JSON.parse(localStorage.getItem('jump_user'));
   let currentData = { isOpen: false };
   let sortableInstance = null;
 
-  window.onload = () => { if (user) showApp(); else showAuth(); };
+  window.onload = () => { 
+    if (user) {
+      showApp();
+      document.getElementById('headerUserName').innerText = user.name + " さん";
+    } else {
+      showAuth();
+    }
+  };
 
-  // --- ★修正：通信関数をJSONPに対応させる ---
+  // JSONP通信関数
   function callGas(funcName, ...args) {
     return new Promise((resolve, reject) => {
       const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
@@ -189,55 +259,66 @@
         if (data.error) reject(new Error(data.error));
         else resolve(data);
       };
-
       const script = document.createElement('script');
       script.src = `${GAS_URL}?func=${funcName}&args=${encodeURIComponent(JSON.stringify(args))}&callback=${callbackName}`;
       document.body.appendChild(script);
     });
   }
 
-  function toggleLoading(show) {
-    const loader = document.getElementById('loading-overlay');
-    if (show) loader.classList.remove('hidden');
-    else loader.classList.add('hidden');
-  }
-
   function showAuth() { document.getElementById('auth-section').classList.remove('hidden'); document.getElementById('app-section').classList.add('hidden'); }
-  function showApp() { document.getElementById('auth-section').classList.add('hidden'); document.getElementById('app-section').classList.remove('hidden'); switchTab('page-mypage'); }
+  function showApp() { document.getElementById('auth-section').classList.add('hidden'); document.getElementById('app-section').classList.remove('hidden'); switchTab('page-home', document.querySelector('.nav-item')); }
   function showAuthView(v) { document.querySelectorAll('#auth-section .card').forEach(c => c.classList.add('hidden')); document.getElementById(v).classList.remove('hidden'); }
 
-  function switchTab(pId) {
+  // 画面表示切替 (ボトムナビ対応)
+  function switchTab(pId, navItem) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(pId).classList.add('active');
-    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-    const tId = pId.replace('page-', 'tab-');
-    if(document.getElementById(tId)) document.getElementById(tId).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+    if(navItem) navItem.classList.add('active');
 
-    if(pId === 'page-mypage') loadMyPage();
-    if(pId === 'page-predict') goPredict();
-    if(pId === 'page-event') loadEventPage();
-    if(pId === 'page-stats') goStats();
-    if(pId === 'page-past-jumps') goPastJumps();
-    if(pId === 'page-everyone') goEveryone();
-    if(pId === 'page-scores') goPastScores();
+    // データ読み込み
+    if(pId === 'page-home') loadMyPage();
+    if(pId === 'page-league') loadLeagueData();
+    if(pId === 'page-data') loadDataTab();
+    if(pId === 'page-mypage') loadMyPageInfo();
   }
+
+  // サブタブ切替 (League, Data用)
+  function switchSubTab(mainTab, subTab) {
+    document.querySelectorAll(`#page-${mainTab} .sub-tab-item`).forEach(t => t.classList.remove('active'));
+    document.querySelectorAll(`#page-${mainTab} .sub-page`).forEach(p => p.classList.add('hidden'));
+    
+    event.currentTarget.classList.add('active');
+    document.getElementById(`sub-page-${mainTab}-${subTab}`).classList.remove('hidden');
+    
+    if(subTab === 'predict') executePredict();
+    if(subTab === 'stats') goStats();
+    if(subTab === 'past') goPastJumps();
+    if(subTab === 'everyone') goEveryone();
+  }
+
+  function toggleAccordion() {
+    const content = document.getElementById('pastScoresContent');
+    const icon = document.getElementById('accordionIcon');
+    content.classList.toggle('open');
+    icon.innerText = content.classList.contains('open') ? '▲' : '▼';
+    if(content.classList.contains('open')) goPastScores();
+  }
+
+  // --- 機能系関数 ---
 
   async function onLogin() {
     const n = document.getElementById('loginName').value, p = document.getElementById('loginPw').value;
     if(!n || !p) return alert("入力してください");
     toggleLoading(true);
-    document.getElementById('loginBtn').disabled = true;
     try {
       const res = await callGas('login', n, p);
       toggleLoading(false);
       user = res;
       localStorage.setItem('jump_user', JSON.stringify(res));
+      document.getElementById('headerUserName').innerText = user.name + " さん";
       showApp();
-    } catch(e) {
-      toggleLoading(false);
-      alert(e.message);
-      document.getElementById('loginBtn').disabled = false;
-    }
+    } catch(e) { toggleLoading(false); alert(e.message); }
   }
 
   async function onRegister() {
@@ -249,24 +330,7 @@
       toggleLoading(false);
       alert(res.message);
       showAuthView('view-login');
-    } catch(e) {
-      toggleLoading(false);
-      alert(e.message);
-    }
-  }
-
-  async function onReset() {
-    const n = document.getElementById('resetName').value, h = document.getElementById('resetHint').value, p = document.getElementById('resetNewPw').value;
-    toggleLoading(true);
-    try {
-      const msg = await callGas('resetPassword', n, h, p);
-      toggleLoading(false);
-      alert(msg);
-      showAuthView('view-login');
-    } catch(e) {
-      toggleLoading(false);
-      alert(e.message);
-    }
+    } catch(e) { toggleLoading(false); alert(e.message); }
   }
 
   async function loadMyPage() {
@@ -277,44 +341,26 @@
       document.getElementById('newsContent').innerText = data.news;
       document.getElementById('issueText').innerText = data.issueName;
       document.getElementById('submitStatus').innerHTML = data.hasSubmitted ? '<span style="color:#38a169">提出済み ✅</span>' : '<span style="color:#e53e3e">未提出 ⚠️</span>';
-      const evBox = document.getElementById('eventStatus');
-      evBox.innerHTML = data.activeEvent ? `${data.activeEvent.name}: ${data.activeEvent.isParticipating ? '参加中' : '未参加'}` : "募集中のイベントはありません。";
     } catch(e) {}
   }
 
-  async function loadEventPage() {
-    try {
-      const data = await callGas('getMyPageData', user.id, user.name);
-      const box = document.getElementById('eventList');
-      if(!data.activeEvent || data.activeEvent.type !== "予選") { box.innerHTML = "現在募集中の予選はありません。"; return; }
-      const ev = data.activeEvent;
-      box.innerHTML = `<div class="event-card"><h3>${ev.name}</h3><button class="btn ${ev.isParticipating?'btn-outline':''}" onclick="onToggleEvent(${!ev.isParticipating})">${ev.isParticipating?'辞退する':'参加を希望する'}</button></div>`;
-    } catch(e) {}
+  function loadLeagueData() {
+    // League タブが開かれた時の初期処理
+    executePredict(); 
   }
-
-  async function onToggleEvent(join) {
-    toggleLoading(true);
-    try {
-      const msg = await callGas('toggleEventParticipation', user.name, currentData.activeEvent.id, join);
-      toggleLoading(false);
-      alert(msg);
-      loadEventPage();
-    } catch(e) { toggleLoading(false); alert(e.message); }
-  }
-
-  async function goPredict() {
-    const listCheck = document.getElementById('sortList');
-    if (listCheck.children.length > 5 && !listCheck.innerText.includes("読み込み中")) return; 
-    try {
-      currentData = await callGas('getMyPageData', user.id, user.name);
-      executePredict();
-    } catch(e) {}
+  
+  function loadDataTab() {
+    goStats();
   }
 
   async function executePredict() {
     const container = document.getElementById('sortList');
     const saveBtn = document.getElementById('savePredictBtn');
     const guide = document.getElementById('predictGuideArea');
+    
+    // データ取得
+    currentData = await callGas('getMyPageData', user.id, user.name);
+    
     if (!currentData.isOpen) {
       container.innerHTML = `<div style="text-align:center; padding:40px; color:#e53e3e; font-weight:bold;">🔒 受付期間外です</div>`;
       saveBtn.style.display = 'none';
@@ -330,7 +376,7 @@
       data.list.forEach((name, idx) => {
         const item = document.createElement('div');
         item.className = "sort-item"; item.dataset.name = name;
-        let badge = data.colors.top.includes(name) ? '<span class="badge badge-top">巻頭</span>' : (data.colors.center.includes(name) ? '<span class="badge badge-center">センター</span>' : '');
+        let badge = data.colors.top.includes(name) ? '<span class="badge badge-top" style="background:#ff4d4d;color:white;">巻頭</span>' : (data.colors.center.includes(name) ? '<span class="badge badge-center" style="background:#fefcbf;">センター</span>' : '');
         item.innerHTML = `<div class="handle">⠿</div><div class="rank-num">${idx+1}</div><div class="item-name">${name}</div>${badge}`;
         container.appendChild(item);
       });
@@ -350,14 +396,14 @@
       const msg = await callGas('submitPrediction', user.id, currentData.jumpId, list);
       toggleLoading(false);
       alert(msg);
-      switchTab('page-mypage');
+      loadMyPage();
     } catch(e) { toggleLoading(false); alert(e.message); }
   }
 
   async function goStats() {
     try {
       const data = await callGas('getStatsTable');
-      document.getElementById('statsHead').innerHTML = `<tr><th>#</th><th>作品名</th>${data.issues.map(iss=>`<th>${iss}</th>`).join('')}<th>平均</th></tr>`;
+      document.getElementById('statsHead').innerHTML = `<tr><th>#</th><th>作品名</th>${data.issues.map(iss=>`<th>${iss.slice(-2)}</th>`).join('')}<th>平均</th></tr>`;
       document.getElementById('statsBody').innerHTML = data.stats.map(s => `<tr><td>${s.rank}</td><td style="text-align:left;padding-left:10px;">${s.title}</td>${s.ranks.map((r,i)=>`<td class="${s.colors[i]==1?'color-top':(s.colors[i]==2?'color-center':'')}">${r}</td>`).join('')}<td>${s.average}</td></tr>`).join('');
     } catch(e) {}
   }
@@ -387,14 +433,19 @@
     } catch(e) { area.innerHTML = "読み込み失敗"; }
   }
 
+  async function loadMyPageInfo() {
+    document.getElementById('infoName').innerText = user.name;
+    document.getElementById('infoId').innerText = user.id;
+    // キーワード取得ロジックが必要（今回はダミー）
+    document.getElementById('infoHint').innerText = "********";
+  }
+
   async function goPastScores() {
     try {
       const data = await callGas('getPastScores', user.id);
-      document.getElementById('scoreTableBody').innerHTML = data.map(r => `<tr><td>${r.year}</td><td>${r.issue}</td><td>${r.score}</td></tr>`).join('');
+      document.getElementById('scoreTableBody').innerHTML = data.map(r => `<tr><td>${r.issue}</td><td>${r.score}</td></tr>`).join('');
     } catch(e) {}
   }
-
-  function logout() { localStorage.clear(); location.reload(); }
 
   async function onSendInquiry() {
     const cat = document.getElementById('contactCategory').value;
@@ -408,6 +459,14 @@
       document.getElementById('contactContent').value = "";
     } catch(e) { toggleLoading(false); alert(e.message); }
   }
+
+  function logout() { localStorage.clear(); location.reload(); }
+  function toggleLoading(show) {
+    const loader = document.getElementById('loading-overlay');
+    if (show) loader.classList.remove('hidden');
+    else loader.classList.add('hidden');
+  }
 </script>
 </body>
 </html>
+
