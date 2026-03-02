@@ -4,469 +4,290 @@
   <meta charset="UTF-8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="JUMP予想">
-  <meta name="theme-color" content="#333333">
-
-  <meta name="format-detection" content="telephone=no">
-
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <link rel="icon" type="image/png" href="https://i.postimg.cc/gn45Grky/bisukorigurogo6.png?type=index">
-
-  <base target="_top">
+  <title>JUMP予想</title>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
-    /* 画像風のカラー定義 */
     :root { 
-      --main-blue: #3182ce; 
-      --inactive-gray: #718096; 
-      --bg: #f5f7fb; 
-      --header-bg: #1a202c; 
+      --ios-blue: #007aff; 
+      --ios-bg: #e5e5ea; /* 画像に合わせた薄いグレー */
+      --ios-card: #ffffff;
+      --header-blue: #007aff;
+      --nav-dark: #1c1c1e;
+      --pill-bg: rgba(255, 255, 255, 0.2);
     }
     
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; color: #000; padding-bottom: 70px; }
-    
+    body { font-family: -apple-system, sans-serif; background: var(--ios-bg); margin: 0; padding-bottom: 90px; color: #000; overflow-x: hidden; }
     .hidden { display: none !important; }
-    
-    /* ヘッダー */
-    .app-header {
-      position: sticky; top: 0; background: var(--header-bg); z-index: 1000;
-      color: white; padding: 0 15px; display: flex; align-items: center; justify-content: space-between;
-      height: 44px;
+
+    /* ヘッダー: 画像の「のじを。さん」ピル型を再現 */
+    header {
+      background: var(--header-blue); padding: 15px; text-align: center;
+      position: sticky; top: 0; z-index: 1000; height: 60px;
+      display: flex; justify-content: center; align-items: center;
     }
-    .header-user { background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; }
-    .header-icon { width: 24px; height: 24px; filter: invert(1); }
+    .user-pill {
+      background: var(--pill-bg); color: white; padding: 8px 40px; border-radius: 50px;
+      border: 2px solid white; font-size: 1.1rem; font-weight: bold; min-width: 150px;
+    }
 
-    /* 認証コンテナ */
-    .auth-container { max-width: 400px; margin: 40px auto; padding: 0 20px; }
-    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .title-left { color: var(--main-blue); border-left: 5px solid var(--main-blue); padding-left: 10px; margin-bottom: 20px; font-weight: bold; font-size: 1.2rem; }
-    
-    /* 共通コンポーネント */
-    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
-    .btn { background: var(--main-blue); color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
-    .btn:disabled { opacity: 0.6; }
-    .btn-outline { background: white; color: var(--main-blue); border: 2px solid var(--main-blue); }
+    /* ボトムナビ: 黒背景に青のハイライト */
+    .bottom-nav {
+      position: fixed; bottom: 0; width: 100%; height: 75px;
+      background: var(--nav-dark); display: flex; justify-content: space-around;
+      padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid #333; z-index: 2000;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #8e8e93; font-size: 11px; font-weight: bold; cursor: pointer;
+    }
+    .nav-item.active { color: var(--ios-blue); }
+    .nav-icon { font-size: 24px; margin-bottom: 2px; }
 
-    /* ページ表示設定 */
-    .page { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
+    /* コンテンツエリア */
+    .page { display: none; padding: 15px; box-sizing: border-box; }
     .page.active { display: block; }
 
-    /* サブタブ (ヘッダー直下) */
-    .sub-nav { display: flex; background: white; border-bottom: 1px solid #e2e8f0; position: sticky; top: 44px; z-index: 999; }
-    .sub-tab-item { flex: 1; text-align: center; padding: 15px 10px; font-size: 0.85rem; color: var(--inactive-gray); cursor: pointer; font-weight: bold; }
-    .sub-tab-item.active { color: var(--main-blue); border-bottom: 3px solid var(--main-blue); }
-
-    /* ボトムナビゲーション (画像風) */
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
-      background: white; border-top: 1px solid #e2e8f0;
-      display: flex; justify-content: space-around; z-index: 1000;
-      padding-bottom: env(safe-area-inset-bottom);
+    /* サブナビ（LeagueやData内の切り替え）: 画像の黒背景ボタン */
+    .sub-tabs {
+      background: var(--nav-dark); display: flex; padding: 8px; margin: -15px -15px 15px -15px;
+      justify-content: space-around;
     }
-    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--inactive-gray); cursor: pointer; text-decoration: none; }
-    .nav-item.active { color: var(--main-blue); }
-    .nav-icon { width: 24px; height: 24px; margin-bottom: 3px; }
-    .nav-item.active .nav-icon { filter: invert(48%) sepia(87%) saturate(1281%) hue-rotate(184deg) brightness(90%) contrast(85%); }
-    .nav-label { font-size: 10px; font-weight: bold; }
+    .sub-tab-btn {
+      color: #8e8e93; padding: 8px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; cursor: pointer;
+    }
+    .sub-tab-btn.active { background: var(--ios-blue); color: white; }
 
-    /* テーブル・リスト・その他スタイル */
-    .scroll-x { overflow-x: auto; margin-bottom: 10px; border: 1px solid #e2e8f0; border-radius: 8px;}
-    .data-table { width: 100%; border-collapse: collapse; background: white; font-size: 0.8rem; }
-    .data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 10px 4px; text-align: center; }
-    
-    .color-top { background-color: #ffcccc !important; font-weight: bold; }
-    .color-center { background-color: #fff3cd !important; font-weight: bold; }
-    
-    .sort-item { background: white; border: 1px solid #e2e8f0; margin-bottom: 6px; border-radius: 8px; display: flex; align-items: center; overflow: hidden; }
-    .handle { background: #eee; color: #555; padding: 15px 12px; cursor: grab; }
-    .rank-num { width: 35px; text-align: center; font-weight: bold; }
-    .item-name { flex: 1; padding: 12px 5px; font-size: 16px; }
-    .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-right: 10px; font-weight: bold; }
-    
-    .predict-guide { background: #edf2f7; padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #2d3748; margin-bottom: 15px; }
+    /* Homeのカード: 丸い角と青枠 */
+    .card-ios {
+      background: white; border-radius: 40px; padding: 25px; margin-bottom: 15px;
+      border: 1px solid #b2d7ff; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .info-box { background: #cfe4ff; border-radius: 35px; min-height: 150px; padding: 20px; margin-bottom: 20px; color: #333; }
 
-    /* My Page アコーディオン */
-    .accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; cursor: pointer; }
-    .accordion-content { display: none; padding: 15px 0; background: #fafafa; border-radius: 8px; margin-top: 10px; }
-    .accordion-content.open { display: block; }
-    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-    .info-label { color: #666; }
-    .info-value { font-weight: bold; color: #333; }
-    
-    /* ローディング */
-    #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-    .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid var(--main-blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    /* My Pageのリスト形式 */
+    .list-group-title { padding-left: 15px; margin-bottom: 5px; font-size: 0.85rem; color: #6e6e73; }
+    .list-group { background: #dcdcdc; border-radius: 0; margin-bottom: 25px; overflow: hidden; }
+    .list-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 15px; border-bottom: 1px solid #c7c7cc; background: #e5e5ea;
+    }
+    .list-row:last-child { border-bottom: none; }
+    .list-label { font-weight: 500; font-size: 1rem; }
+    .list-val { color: #8e8e93; font-size: 1rem; display: flex; align-items: center; }
+    .arrow { margin-left: 10px; font-weight: bold; font-family: monospace; }
+
+    /* ボタン類 */
+    .btn-submit { background: var(--ios-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 15px; font-weight: bold; font-size: 1rem; margin-top: 15px; }
+    .btn-logout {
+      background: white; color: #ff3b30; border: 2px solid #ff3b30;
+      padding: 10px 60px; border-radius: 50px; font-weight: bold; font-size: 1.2rem;
+      display: block; margin: 30px auto;
+    }
+
+    /* テーブル共通 */
+    .table-container { overflow-x: auto; background: white; border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    .color-top { background: #ffcccc; font-weight: bold; }
+    .color-center { background: #fff3cd; font-weight: bold; }
+
+    /* ソートアイテム */
+    .sort-item { background: white; margin-bottom: 8px; padding: 12px; border-radius: 10px; display: flex; align-items: center; border: 1px solid #ddd; }
+    .rank-tag { width: 30px; font-weight: bold; color: var(--ios-blue); }
+    .drag-handle { margin-left: auto; color: #ccc; }
   </style>
 </head>
 <body>
 
-<div id="loading-overlay" class="hidden">
-  <div class="spinner"></div>
-  <div style="font-weight:bold; color:var(--main-blue); margin-top:10px;">通信中...</div>
-</div>
+<header>
+  <div class="user-pill" id="displayUserName">-- さん</div>
+</header>
 
-<div id="auth-section" class="auth-container">
-  <div id="view-login" class="card">
-    <div class="title-left">Login</div>
-    <input type="text" id="loginName" placeholder="ユーザー名">
-    <input type="password" id="loginPw" placeholder="パスワード">
-    <button class="btn" id="loginBtn" onclick="onLogin()">ログイン</button>
-    <button class="btn btn-outline" onclick="showAuthView('view-register')">新規登録</button>
-  </div>
-  <div id="view-register" class="card hidden">
-    <div class="title-left">Register</div>
-    <input type="text" id="regName" maxlength="8" placeholder="アカウント名(8文字以内)">
-    <input type="password" id="regPw" placeholder="パスワード">
-    <input type="text" id="regHint" placeholder="秘密のキーワード(好きな作品等)">
-    <button class="btn" id="regSubmitBtn" onclick="onRegister()">登録</button>
-    <button class="btn btn-outline" onclick="showAuthView('view-login')">戻る</button>
-  </div>
-</div>
-
-<div id="app-section" class="hidden">
-  <header class="app-header">
-    <div class="header-user" id="headerUserName"></div>
-    <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-notice.svg" class="header-icon">
-  </header>
-
+<div id="app-content">
   <div id="page-home" class="page active">
-    <div class="card">
-      <div class="title-left" id="userGreet"></div>
-      <div id="newsContent" style="font-size:0.9rem; padding:10px; border-radius:8px; margin-bottom:15px; background:#fffaf0; border:1px dashed #ccc;"></div>
-      <div id="statusInfo" style="background:#edf2f7; padding:15px; border-radius:10px; text-align:center;">
-        <div id="issueText" style="font-size:1.1rem; font-weight:bold; margin-bottom:5px;"></div>
-        <div id="submitStatus"></div>
+    <div class="card-ios">
+      <div class="info-box" id="newsText">ここにお知らせを表示します。</div>
+      <div style="text-align:center;">
+        <h2 id="homeIssue" style="margin:0;">--号</h2>
+        <h1 id="homeStatus" style="color:#ff3b30; margin:10px 0;">--</h1>
+        <div style="border-top:1px solid #ddd; padding-top:10px; font-size:0.9rem;" id="homeEvent"></div>
       </div>
     </div>
   </div>
 
   <div id="page-league" class="page">
-    <div class="sub-nav">
-      <div class="sub-tab-item active" onclick="switchSubTab('league', 'predict')">予想提出</div>
-      <div class="sub-tab-item" onclick="switchSubTab('league', 'event')">予選参加</div>
+    <div class="sub-tabs">
+      <div class="sub-tab-btn active" onclick="switchLeagueSub('predict', this)">予想提出</div>
+      <div class="sub-tab-btn" onclick="switchLeagueSub('event', this)">予選参加</div>
     </div>
-    <div id="sub-page-league-predict" class="sub-page">
-      <div class="card">
-        <div id="predictGuideArea" class="predict-guide hidden">ドラッグ&ドロップで並び替えてください。</div>
-        <div id="sortList">読み込み中...</div>
-        <button class="btn" id="savePredictBtn" onclick="onSavePredict()">予想を送信する</button>
-      </div>
+    <div id="sub-league-predict">
+      <div id="sortContainer">読み込み中...</div>
+      <button class="btn-submit" onclick="onSavePredict()">予想を送信する</button>
     </div>
-    <div id="sub-page-league-event" class="sub-page hidden">
-      <div class="card"><div id="eventList">読み込み中...</div></div>
+    <div id="sub-league-event" class="hidden">
+      <div class="card-ios" id="eventContent" style="text-align:center;">現在募集中のイベントはありません。</div>
     </div>
   </div>
 
   <div id="page-data" class="page">
-    <div class="sub-nav">
-      <div class="sub-tab-item active" onclick="switchSubTab('data', 'stats')">統計</div>
-      <div class="sub-tab-item" onclick="switchSubTab('data', 'past')">掲載順</div>
-      <div class="sub-tab-item" onclick="switchSubTab('data', 'everyone')">みんな</div>
+    <div class="sub-tabs">
+      <div class="sub-tab-btn active" onclick="switchDataSub('stats', this)">8週統計</div>
+      <div class="sub-tab-btn" onclick="switchDataSub('past', this)">8週掲載順</div>
+      <div class="sub-tab-btn" onclick="switchDataSub('everyone', this)">みんなの予想</div>
     </div>
-    <div id="sub-page-data-stats" class="sub-page">
-      <div class="card"><div class="scroll-x"><table class="data-table"><thead id="statsHead"></thead><tbody id="statsBody"></tbody></table></div></div>
-    </div>
-    <div id="sub-page-data-past" class="sub-page hidden">
-      <div class="card"><div class="scroll-x"><table class="data-table" style="width:800px;"><thead id="pastJumpsHead"></thead><tbody id="pastJumpsBody"></tbody></table></div></div>
-    </div>
-    <div id="sub-page-data-everyone" class="sub-page hidden">
-      <div class="card"><div id="everyoneArea"></div></div>
-    </div>
+    <div id="sub-data-stats" class="table-container"><table><thead id="statsHead"></thead><tbody id="statsBody"></tbody></table></div>
+    <div id="sub-data-past" class="table-container hidden"><table><thead id="pastHead"></thead><tbody id="pastBody"></tbody></table></div>
+    <div id="sub-data-everyone" class="table-container hidden" id="everyoneArea"></div>
   </div>
 
   <div id="page-qna" class="page">
-    <div class="card">
-      <div class="title-left">問い合わせ</div>
-      <select id="contactCategory">
-        <option value="「ホーム」タブに関して">「ホーム」タブに関して</option>
-        <option value="その他">その他</option>
+    <div class="card-ios">
+      <h3 style="margin-top:0;">お問い合わせ</h3>
+      <select id="qCategory" style="width:100%; padding:10px; border-radius:10px; margin-bottom:10px;">
+        <option>機能に関して</option><option>不具合報告</option><option>その他</option>
       </select>
-      <textarea id="contactContent" rows="5"></textarea>
-      <button class="btn" onclick="onSendInquiry()">送信する</button>
+      <textarea id="qContent" rows="8" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd;" placeholder="内容を入力してください"></textarea>
+      <button class="btn-submit" onclick="onSendInquiry()">送信する</button>
     </div>
   </div>
 
   <div id="page-mypage" class="page">
-    <div class="card">
-      <div class="title-left">ユーザー情報</div>
-      <div class="info-row"><span class="info-label">ユーザー名</span><span class="info-value" id="infoName"></span></div>
-      <div class="info-row"><span class="info-label">ユーザーID</span><span class="info-value" id="infoId"></span></div>
-      <div class="info-row"><span class="info-label">秘密のキーワード</span><span class="info-value" id="infoHint"></span></div>
-      <div class="info-row"><span class="info-label">パスワード</span><span class="info-value">********</span></div>
-      <button class="btn btn-outline" onclick="logout()">ログアウト</button>
+    <div class="list-group-title">ユーザー情報</div>
+    <div class="list-group">
+      <div class="list-row"><span class="list-label">ユーザー名</span><span class="list-val" id="infoName">--<span class="arrow">></span></span></div>
+      <div class="list-row"><span class="list-label">ユーザーID</span><span class="list-val" id="infoId">--<span class="arrow">></span></span></div>
+      <div class="list-row"><span class="list-label">パスワード</span><span class="list-val">********<span class="arrow">></span></span></div>
+      <div class="list-row"><span class="list-label">秘密のキーワード</span><span class="list-val" id="infoHint">--<span class="arrow">></span></span></div>
     </div>
-    <div class="card">
-      <div class="accordion-header" onclick="toggleAccordion()">
-        <span style="font-weight:bold; color:var(--main-blue);">過去の成績</span>
-        <span id="accordionIcon">▼</span>
-      </div>
-      <div id="pastScoresContent" class="accordion-content">
-        <table class="data-table"><thead><tr><th>号数</th><th>点数</th></tr></thead><tbody id="scoreTableBody"></tbody></table>
+    <div class="list-group-title">個人成績</div>
+    <div class="list-group">
+      <div class="list-row" onclick="switchTab('page-scores', null)">
+        <span class="list-label">過去の成績</span><span class="list-val"><span class="arrow">></span></span>
       </div>
     </div>
+    <button class="btn-logout" onclick="logout()">ログアウト</button>
   </div>
 
-  <nav class="bottom-nav">
-    <a class="nav-item active" onclick="switchTab('page-home', this)">
-      <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-home.svg" class="nav-icon">
-      <span class="nav-label">Home</span>
-    </a>
-    <a class="nav-item" onclick="switchTab('page-league', this)">
-      <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-league.svg" class="nav-icon">
-      <span class="nav-label">League</span>
-    </a>
-    <a class="nav-item" onclick="switchTab('page-data', this)">
-      <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-data.svg" class="nav-icon">
-      <span class="nav-label">Data</span>
-    </a>
-    <a class="nav-item" onclick="switchTab('page-qna', this)">
-      <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-q&a.svg" class="nav-icon">
-      <span class="nav-label">Q&A</span>
-    </a>
-    <a class="nav-item" onclick="switchTab('page-mypage', this)">
-      <img src="https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/icon-mypage.svg" class="nav-icon">
-      <span class="nav-label">My Page</span>
-    </a>
-  </nav>
+  <div id="page-scores" class="page">
+    <button onclick="switchTab('page-mypage', null)" style="background:none; border:none; color:var(--ios-blue); font-weight:bold; margin-bottom:10px;">＜ 戻る</button>
+    <div class="table-container"><table><thead><tr><th>年度</th><th>号数</th><th>点数</th></tr></thead><tbody id="scoreBody"></tbody></table></div>
+  </div>
 </div>
 
+<nav class="bottom-nav">
+  <div class="nav-item active" onclick="switchTab('page-home', this)"><div class="nav-icon">⌂</div><span>Home</span></div>
+  <div class="nav-item" onclick="switchTab('page-league', this)"><div class="nav-icon">◪</div><span>League</span></div>
+  <div class="nav-item" onclick="switchTab('page-data', this)"><div class="nav-icon">📊</div><span>Data</span></div>
+  <div class="nav-item" onclick="switchTab('page-qna', this)"><div class="nav-icon">💬</div><span>Q&A</span></div>
+  <div class="nav-item" onclick="switchTab('page-mypage', this)"><div class="nav-icon">👤</div><span>My Page</span></div>
+</nav>
+
 <script>
-  // ★重要★ GASのURLとGitHubの画像URLを正しく設定してください
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxRrdI7fetm8f18TzwMu5I4nRhSn4JqiUYvHGgXSo4BHtHHeObycQevz9__39bskNxB7Q/exec'; 
-
   let user = JSON.parse(localStorage.getItem('jump_user'));
-  let currentData = { isOpen: false };
-  let sortableInstance = null;
+  let currentData = {};
+  let sortable = null;
 
-  window.onload = () => { 
-    if (user) {
-      showApp();
-      document.getElementById('headerUserName').innerText = user.name + " さん";
-    } else {
-      showAuth();
-    }
-  };
+  window.onload = () => { if(user) initApp(); else location.reload(); };
 
-  // JSONP通信関数
-  function callGas(funcName, ...args) {
-    return new Promise((resolve, reject) => {
-      const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-      window[callbackName] = function(data) {
-        delete window[callbackName];
-        document.body.removeChild(script);
-        if (data.error) reject(new Error(data.error));
-        else resolve(data);
-      };
-      const script = document.createElement('script');
-      script.src = `${GAS_URL}?func=${funcName}&args=${encodeURIComponent(JSON.stringify(args))}&callback=${callbackName}`;
-      document.body.appendChild(script);
-    });
-  }
-
-  function showAuth() { document.getElementById('auth-section').classList.remove('hidden'); document.getElementById('app-section').classList.add('hidden'); }
-  function showApp() { document.getElementById('auth-section').classList.add('hidden'); document.getElementById('app-section').classList.remove('hidden'); switchTab('page-home', document.querySelector('.nav-item')); }
-  function showAuthView(v) { document.querySelectorAll('#auth-section .card').forEach(c => c.classList.add('hidden')); document.getElementById(v).classList.remove('hidden'); }
-
-  // 画面表示切替 (ボトムナビ対応)
-  function switchTab(pId, navItem) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pId).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
-    if(navItem) navItem.classList.add('active');
-
-    // データ読み込み
-    if(pId === 'page-home') loadMyPage();
-    if(pId === 'page-league') loadLeagueData();
-    if(pId === 'page-data') loadDataTab();
-    if(pId === 'page-mypage') loadMyPageInfo();
-  }
-
-  // サブタブ切替 (League, Data用)
-  function switchSubTab(mainTab, subTab) {
-    document.querySelectorAll(`#page-${mainTab} .sub-tab-item`).forEach(t => t.classList.remove('active'));
-    document.querySelectorAll(`#page-${mainTab} .sub-page`).forEach(p => p.classList.add('hidden'));
-    
-    event.currentTarget.classList.add('active');
-    document.getElementById(`sub-page-${mainTab}-${subTab}`).classList.remove('hidden');
-    
-    if(subTab === 'predict') executePredict();
-    if(subTab === 'stats') goStats();
-    if(subTab === 'past') goPastJumps();
-    if(subTab === 'everyone') goEveryone();
-  }
-
-  function toggleAccordion() {
-    const content = document.getElementById('pastScoresContent');
-    const icon = document.getElementById('accordionIcon');
-    content.classList.toggle('open');
-    icon.innerText = content.classList.contains('open') ? '▲' : '▼';
-    if(content.classList.contains('open')) goPastScores();
-  }
-
-  // --- 機能系関数 ---
-
-  async function onLogin() {
-    const n = document.getElementById('loginName').value, p = document.getElementById('loginPw').value;
-    if(!n || !p) return alert("入力してください");
-    toggleLoading(true);
-    try {
-      const res = await callGas('login', n, p);
-      toggleLoading(false);
-      user = res;
-      localStorage.setItem('jump_user', JSON.stringify(res));
-      document.getElementById('headerUserName').innerText = user.name + " さん";
-      showApp();
-    } catch(e) { toggleLoading(false); alert(e.message); }
-  }
-
-  async function onRegister() {
-    const n = document.getElementById('regName').value, p = document.getElementById('regPw').value, h = document.getElementById('regHint').value;
-    if(!n || !p || !h) return alert("未入力項目があります");
-    toggleLoading(true);
-    try {
-      const res = await callGas('registerUser', n, p, h);
-      toggleLoading(false);
-      alert(res.message);
-      showAuthView('view-login');
-    } catch(e) { toggleLoading(false); alert(e.message); }
-  }
-
-  async function loadMyPage() {
-    try {
-      const data = await callGas('getMyPageData', user.id, user.name);
-      currentData = data;
-      document.getElementById('userGreet').innerText = `${user.name} さん`;
-      document.getElementById('newsContent').innerText = data.news;
-      document.getElementById('issueText').innerText = data.issueName;
-      document.getElementById('submitStatus').innerHTML = data.hasSubmitted ? '<span style="color:#38a169">提出済み ✅</span>' : '<span style="color:#e53e3e">未提出 ⚠️</span>';
-    } catch(e) {}
-  }
-
-  function loadLeagueData() {
-    // League タブが開かれた時の初期処理
-    executePredict(); 
-  }
-  
-  function loadDataTab() {
-    goStats();
-  }
-
-  async function executePredict() {
-    const container = document.getElementById('sortList');
-    const saveBtn = document.getElementById('savePredictBtn');
-    const guide = document.getElementById('predictGuideArea');
-    
-    // データ取得
-    currentData = await callGas('getMyPageData', user.id, user.name);
-    
-    if (!currentData.isOpen) {
-      container.innerHTML = `<div style="text-align:center; padding:40px; color:#e53e3e; font-weight:bold;">🔒 受付期間外です</div>`;
-      saveBtn.style.display = 'none';
-      guide.classList.add('hidden');
-      return;
-    }
-    saveBtn.style.display = 'block';
-    guide.classList.remove('hidden');
-    container.innerHTML = "作品データ読み込み中...";
-    try {
-      const data = await callGas('getPredictionInitData', user.id, currentData.jumpId);
-      container.innerHTML = "";
-      data.list.forEach((name, idx) => {
-        const item = document.createElement('div');
-        item.className = "sort-item"; item.dataset.name = name;
-        let badge = data.colors.top.includes(name) ? '<span class="badge badge-top" style="background:#ff4d4d;color:white;">巻頭</span>' : (data.colors.center.includes(name) ? '<span class="badge badge-center" style="background:#fefcbf;">センター</span>' : '');
-        item.innerHTML = `<div class="handle">⠿</div><div class="rank-num">${idx+1}</div><div class="item-name">${name}</div>${badge}`;
-        container.appendChild(item);
-      });
-      if (sortableInstance) sortableInstance.destroy();
-      sortableInstance = new Sortable(container, { 
-        handle: '.handle', animation: 150, 
-        onEnd: () => { document.querySelectorAll('.rank-num').forEach((el, i) => el.innerText = i + 1); } 
-      });
-    } catch(e) { container.innerHTML = "読み込み失敗"; }
-  }
-
-  async function onSavePredict() {
-    const list = Array.from(document.getElementById('sortList').children).map(i => i.dataset.name);
-    if(list.length < 5) return alert("データが不十分です。");
-    toggleLoading(true);
-    try {
-      const msg = await callGas('submitPrediction', user.id, currentData.jumpId, list);
-      toggleLoading(false);
-      alert(msg);
-      loadMyPage();
-    } catch(e) { toggleLoading(false); alert(e.message); }
-  }
-
-  async function goStats() {
-    try {
-      const data = await callGas('getStatsTable');
-      document.getElementById('statsHead').innerHTML = `<tr><th>#</th><th>作品名</th>${data.issues.map(iss=>`<th>${iss.slice(-2)}</th>`).join('')}<th>平均</th></tr>`;
-      document.getElementById('statsBody').innerHTML = data.stats.map(s => `<tr><td>${s.rank}</td><td style="text-align:left;padding-left:10px;">${s.title}</td>${s.ranks.map((r,i)=>`<td class="${s.colors[i]==1?'color-top':(s.colors[i]==2?'color-center':'')}">${r}</td>`).join('')}<td>${s.average}</td></tr>`).join('');
-    } catch(e) {}
-  }
-
-  async function goPastJumps() {
-    try {
-      const data = await callGas('getPastJumpsTable');
-      document.getElementById('pastJumpsHead').innerHTML = `<tr>${data.map(d => `<th>${d.issue}</th>`).join('')}</tr>`;
-      let html = ""; for(let i=0; i<25; i++) { html += "<tr>" + data.map(col => { const w = col.list[i] || ""; const cls = col.top.includes(w) ? "color-top" : (col.center.includes(w) ? "color-center" : ""); return `<td class="${cls}">${w}</td>`; }).join('') + "</tr>"; }
-      document.getElementById('pastJumpsBody').innerHTML = html;
-    } catch(e) {}
-  }
-
-  async function goEveryone() {
-    const area = document.getElementById('everyoneArea');
-    if (currentData.isOpen) { area.innerHTML = `<div style="text-align:center; padding:30px; color:#666;">締め切り後に公開されます。</div>`; return; }
-    area.innerHTML = "読み込み中...";
-    try {
-      const data = await callGas('getEveryoneTable', currentData.jumpId);
-      if(!data.predictions.length) { area.innerHTML = "まだ予想がありません。"; return; }
-      let html = `<div class="scroll-x"><table class="data-table"><thead><tr>`;
-      html += data.predictions.map(p => `<th>${p.userName}</th>`).join('');
-      html += `</tr></thead><tbody>`;
-      for(let i=0; i<25; i++) { html += "<tr>" + data.predictions.map(p => { const w = p.list[i] || ""; const cls = data.top.includes(w) ? "color-top" : (data.center.includes(w) ? "color-center" : ""); return `<td class="${cls}">${w}</td>`; }).join('') + "</tr>"; }
-      html += `</tbody></table></div>`;
-      area.innerHTML = html;
-    } catch(e) { area.innerHTML = "読み込み失敗"; }
-  }
-
-  async function loadMyPageInfo() {
+  function initApp() {
+    document.getElementById('displayUserName').innerText = user.name + " さん";
     document.getElementById('infoName').innerText = user.name;
     document.getElementById('infoId').innerText = user.id;
-    // キーワード取得ロジックが必要（今回はダミー）
-    document.getElementById('infoHint').innerText = "********";
+    switchTab('page-home', document.querySelector('.nav-item'));
   }
 
-  async function goPastScores() {
-    try {
-      const data = await callGas('getPastScores', user.id);
-      document.getElementById('scoreTableBody').innerHTML = data.map(r => `<tr><td>${r.issue}</td><td>${r.score}</td></tr>`).join('');
-    } catch(e) {}
+  function switchTab(pId, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(pId).classList.add('active');
+    if(el) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+    }
+    if(pId === 'page-home') loadHome();
+    if(pId === 'page-league') loadPredict();
+    if(pId === 'page-data') loadStats();
+    if(pId === 'page-scores') loadScores();
   }
 
-  async function onSendInquiry() {
-    const cat = document.getElementById('contactCategory').value;
-    const content = document.getElementById('contactContent').value;
-    if (!content.trim()) return alert("内容を入力してください。");
-    toggleLoading(true);
-    try {
-      const msg = await callGas('submitInquiry', user.id, cat, content);
-      toggleLoading(false);
-      alert(msg);
-      document.getElementById('contactContent').value = "";
-    } catch(e) { toggleLoading(false); alert(e.message); }
+  function switchLeagueSub(target, el) {
+    document.getElementById('sub-league-predict').classList.toggle('hidden', target !== 'predict');
+    document.getElementById('sub-league-event').classList.toggle('hidden', target !== 'event');
+    document.querySelectorAll('#page-league .sub-tab-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    if(target === 'event') loadEvent();
+  }
+
+  function switchDataSub(target, el) {
+    document.getElementById('sub-data-stats').classList.toggle('hidden', target !== 'stats');
+    document.getElementById('sub-data-past').classList.toggle('hidden', target !== 'past');
+    document.getElementById('sub-data-everyone').classList.toggle('hidden', target !== 'everyone');
+    document.querySelectorAll('#page-data .sub-tab-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    if(target === 'past') loadPast();
+    if(target === 'everyone') loadEveryone();
+  }
+
+  // --- GAS通信系 (元のロジックを維持) ---
+  function loadHome() {
+    google.script.run.withSuccessHandler(data => {
+      currentData = data;
+      document.getElementById('newsText').innerText = data.news;
+      document.getElementById('homeIssue').innerText = data.issueName;
+      document.getElementById('homeStatus').innerText = data.hasSubmitted ? "提出済み" : "未提出";
+      document.getElementById('homeStatus').style.color = data.hasSubmitted ? "#34c759" : "#ff3b30";
+      document.getElementById('homeEvent').innerText = data.activeEvent ? data.activeEvent.name + ":" + (data.activeEvent.isParticipating ? "参加中" : "未参加") : "イベントなし";
+    }).getMyPageData(user.id, user.name);
+  }
+
+  function loadPredict() {
+    const container = document.getElementById('sortContainer');
+    google.script.run.withSuccessHandler(data => {
+      container.innerHTML = "";
+      data.list.forEach((name, i) => {
+        const item = document.createElement('div');
+        item.className = "sort-item";
+        item.dataset.name = name;
+        item.innerHTML = `<span class="rank-tag">${i+1}</span><span>${name}</span><span class="drag-handle">☰</span>`;
+        container.appendChild(item);
+      });
+      if(sortable) sortable.destroy();
+      sortable = new Sortable(container, { animation: 150, handle: '.drag-handle', onEnd: () => {
+        document.querySelectorAll('.rank-tag').forEach((t, idx) => t.innerText = idx + 1);
+      }});
+    }).getPredictionInitData(user.id, currentData.jumpId);
+  }
+
+  function onSavePredict() {
+    const list = Array.from(document.getElementById('sortContainer').children).map(el => el.dataset.name);
+    google.script.run.withSuccessHandler(msg => { alert(msg); loadHome(); switchTab('page-home', document.querySelector('.nav-item')); })
+    .submitPrediction(user.id, currentData.jumpId, list);
+  }
+
+  function loadStats() {
+    google.script.run.withSuccessHandler(data => {
+      document.getElementById('statsHead').innerHTML = `<tr><th>#</th><th>作品</th>${data.issues.map(iss=>`<th>${iss.slice(-2)}</th>`).join('')}<th>平均</th></tr>`;
+      document.getElementById('statsBody').innerHTML = data.stats.map(s => `<tr><td>${s.rank}</td><td style="text-align:left;">${s.title}</td>${s.ranks.map((r,i)=>`<td class="${s.colors[i]==1?'color-top':(s.colors[i]==2?'color-center':'')}">${r}</td>`).join('')}<td>${s.average}</td></tr>`).join('');
+    }).getStatsTable();
+  }
+
+  function loadPast() {
+    google.script.run.withSuccessHandler(data => {
+      document.getElementById('pastHead').innerHTML = `<tr>${data.map(d => `<th>${d.issue}</th>`).join('')}</tr>`;
+      let html = ""; for(let i=0; i<25; i++) {
+        html += "<tr>" + data.map(col => `<td class="${col.top.includes(col.list[i])?'color-top':''}">${col.list[i]||''}</td>`).join('') + "</tr>";
+      }
+      document.getElementById('pastBody').innerHTML = html;
+    }).getPastJumpsTable();
+  }
+
+  function loadScores() {
+    google.script.run.withSuccessHandler(data => {
+      document.getElementById('scoreBody').innerHTML = data.map(r => `<tr><td>${r.year}</td><td>${r.issue}</td><td>${r.score}</td></tr>`).join('');
+    }).getPastScores(user.id);
   }
 
   function logout() { localStorage.clear(); location.reload(); }
-  function toggleLoading(show) {
-    const loader = document.getElementById('loading-overlay');
-    if (show) loader.classList.remove('hidden');
-    else loader.classList.add('hidden');
-  }
 </script>
 </body>
 </html>
-
