@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 6047 6047" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g id="Q-A" serif:id="Q&amp;A" transform="matrix(2.26292,0,0,2.26292,-3842.16,-3841.74)">
+        <g transform="matrix(-6,0,0,6,4361.37,2518.48)">
+            <path d="M94.488,188.976L70.852,188.976C64.591,188.976 58.586,186.489 54.159,182.062C49.731,177.634 47.244,171.63 47.244,165.368L47.244,70.621C47.244,57.71 57.71,47.244 70.621,47.244L212.65,47.244C218.901,47.244 224.897,49.727 229.317,54.148C233.737,58.568 236.22,64.563 236.22,70.814L236.22,165.267C236.22,171.555 233.723,177.586 229.276,182.032C224.83,186.478 218.8,188.976 212.512,188.976L141.732,188.976L94.488,236.22L94.488,188.976Z" style="fill:none;stroke:rgb(0,128,255);stroke-width:12.28px;"/>
+        </g>
+        <g transform="matrix(6,0,0,6,1706.69,1848.43)">
+            <path d="M188.976,188.976L141.732,188.976L94.488,236.22L94.488,188.976L70.852,188.976C64.591,188.976 58.586,186.489 54.159,182.062C49.731,177.634 47.244,171.63 47.244,165.368L47.244,70.621C47.244,57.71 57.71,47.244 70.621,47.244L212.65,47.244C218.901,47.244 224.897,49.727 229.317,54.148C233.737,58.568 236.22,64.563 236.22,70.814L236.22,141.732L212.547,141.732C206.295,141.732 200.3,144.216 195.88,148.636C191.46,153.056 188.976,159.051 188.976,165.303L188.976,188.976Z" style="fill:none;stroke:rgb(0,128,255);stroke-width:12.28px;"/>
+        </g>
+        <g transform="matrix(12.7646,0,0,12.7646,-12373.7,-25218.9)">
+            <g transform="matrix(50,0,0,50,1189.75,2192.84)">
+            </g>
+            <text x="1150.15px" y="2192.84px" style="font-family:'ArialRoundedMTBold', 'Arial Rounded MT Bold', sans-serif;font-size:50px;fill:rgb(0,128,255);stroke:rgb(0,128,255);stroke-width:0.03px;stroke-linecap:butt;stroke-miterlimit:2;">Q</text>
+        </g>
+        <g transform="matrix(12.7646,0,0,12.7646,-11399.4,-24535.3)">
+            <g transform="matrix(50,0,0,50,1186.12,2192.84)">
+            </g>
+            <text x="1150.15px" y="2192.84px" style="font-family:'ArialRoundedMTBold', 'Arial Rounded MT Bold', sans-serif;font-size:50px;fill:rgb(0,128,255);stroke:rgb(0,128,255);stroke-width:0.03px;stroke-linecap:butt;stroke-miterlimit:2;">A</text>
+        </g>
+    </g>
+</svg>
