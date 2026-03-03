@@ -50,13 +50,14 @@
         .page-section { display: none; padding-bottom: 80px; }
         .page-section.active { display: block; }
 
-        /* --- サブタブ（スライド機能付き） --- */
+        /* --- サブタブ（スライド・カプセル型） --- */
         .sub-nav-container {
             background-color: #333;
             position: relative;
             display: flex;
-            height: 50px;
-            border-bottom: 3px solid #666; /* 下線のベースライン */
+            height: 54px; /* 少し高さを調整 */
+            padding: 0 10px; /* 左右に少し余裕を */
+            align-items: center;
         }
         .sub-tab {
             flex: 1;
@@ -70,16 +71,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 100%;
         }
         .sub-tab.active { color: white; }
 
-        /* スライドする青い背景/下線 */
+        /* スライドするカプセル型の青背景 */
         .slider {
             position: absolute;
-            top: 10px; /* 上下の余白 */
-            bottom: -3px; /* border-bottomに重ねる */
+            height: 34px; /* タブより少し小さくして浮いている感を出す */
             background-color: var(--main-blue);
-            border-radius: 15px 15px 0 0;
+            border-radius: 25px; /* 左右を半円に */
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1;
         }
@@ -98,7 +99,7 @@
             background: white;
             margin: 20px;
             border-radius: 40px;
-            text-align: center; /* 左揃えから中央揃えに修正 */
+            text-align: center;
             overflow: hidden;
         }
         .status-header { padding: 25px; border-bottom: 1px solid var(--border-gray); }
@@ -205,23 +206,24 @@
     </footer>
 
     <script>
-        // サブタブのスライダー位置を計算・移動
         function moveSlider(sectionId, index) {
             const container = document.getElementById(`nav-${sectionId}`);
             const tabs = container.getElementsByClassName('sub-tab');
             const slider = container.querySelector('.slider');
             
-            // 全タブのactive解除
             for (let tab of tabs) tab.classList.remove('active');
-            // 選択タブをactive
             tabs[index].classList.add('active');
 
-            // スライダーの位置と幅を計算
-            const tabWidth = 100 / tabs.length;
-            slider.style.width = `${tabWidth}%`;
-            slider.style.left = `${tabWidth * index}%`;
+            // スライダーの移動計算
+            // コンテナ自体のpadding(左右10px)を考慮
+            const containerPadding = 10;
+            const availableWidth = container.offsetWidth - (containerPadding * 2);
+            const tabWidth = availableWidth / tabs.length;
+            
+            // スライダーの幅を少し小さく見せるための微調整（文字の長さに合わせる感じ）
+            slider.style.width = `${tabWidth}px`;
+            slider.style.left = `${(tabWidth * index) + containerPadding}px`;
 
-            // コンテンツの書き換え（サンプル）
             const content = document.getElementById(`${sectionId}-content`);
             if(sectionId === 'data') {
                 const labels = ['ここで8週統計の表', 'ここで8週掲載順の表', 'ここでみんなの予想の表'];
@@ -231,12 +233,10 @@
             }
         }
 
-        // メインページの切り替え
         function showMainPage(pageId, element) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
 
-            // アイコン色切り替え
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
                 const type = item.innerText.toLowerCase().trim().replace(' ', '');
@@ -249,15 +249,22 @@
             const activeFileName = activeType === 'q&a' ? 'q&a' : activeType;
             element.querySelector('img').src = `icon-b-${activeFileName}.svg`;
 
-            // ページ表示時にスライダーを初期化（LeagueとDataのみ）
-            if(pageId === 'league') moveSlider('league', 1);
-            if(pageId === 'data') moveSlider('data', 0);
+            // 切り替え時にスライダーを再描画（レンダリング後の幅を取得するため少し遅延）
+            setTimeout(() => {
+                if(pageId === 'league') moveSlider('league', 1);
+                if(pageId === 'data') moveSlider('data', 0);
+            }, 10);
         }
 
-        // 初期化
         window.onload = () => {
             moveSlider('league', 1);
             moveSlider('data', 0);
+        };
+        
+        // 画面リサイズ時にもスライダー位置を調整
+        window.onresize = () => {
+            if(document.getElementById('league').classList.contains('active')) moveSlider('league', 1);
+            if(document.getElementById('data').classList.contains('active')) moveSlider('data', 0);
         };
     </script>
 </body>
