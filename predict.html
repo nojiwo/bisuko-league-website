@@ -110,7 +110,7 @@
         </section>
         <section id="league" class="page-section">
             <div class="sub-nav-container" id="nav-league">
-                <button class="sub-tab active" onclick="moveSlider('league', 0)">予想提出</button>
+                <button class="sub-tab" onclick="moveSlider('league', 0)">予想提出</button>
                 <button class="sub-tab" onclick="moveSlider('league', 1)">予選参加希望</button>
                 <span class="slider"></span>
             </div>
@@ -118,7 +118,7 @@
         </section>
         <section id="data" class="page-section">
             <div class="sub-nav-container" id="nav-data">
-                <button class="sub-tab active" onclick="moveSlider('data', 0)">8週統計</button>
+                <button class="sub-tab" onclick="moveSlider('data', 0)">8週統計</button>
                 <button class="sub-tab" onclick="moveSlider('data', 1)">8週掲載順</button>
                 <button class="sub-tab" onclick="moveSlider('data', 2)">みんなの予想</button>
                 <span class="slider"></span>
@@ -142,9 +142,16 @@
         let currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
         let mypageView = currentUser ? 'dashboard' : 'login';
 
+        // 各メインタブの「現在のサブタブ番号」を保持する
+        let activeSubTabs = {
+            league: 0,
+            data: 0
+        };
+
         function showMainPage(pageId, element) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
+            
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
                 const type = item.innerText.toLowerCase().trim().replace(' ', '');
@@ -155,8 +162,9 @@
             element.querySelector('img').src = `icon-b-${activeType === 'q&a' ? 'q&a' : activeType}.svg`;
             
             if(pageId === 'home') initHome();
-            if(pageId === 'league') moveSlider('league', 0);
-            if(pageId === 'data') moveSlider('data', 0);
+            // メイン移動時、保持しているサブタブ番号でスライダーを復元する
+            if(pageId === 'league') moveSlider('league', activeSubTabs.league);
+            if(pageId === 'data') moveSlider('data', activeSubTabs.data);
             if(pageId === 'mypage') renderMypage();
             updateHeader();
         }
@@ -199,13 +207,23 @@
         function moveSlider(sectionId, index) {
             const container = document.getElementById(`nav-${sectionId}`);
             if (!container) return;
+
+            // 状態を更新
+            activeSubTabs[sectionId] = index;
+
             const tabs = container.getElementsByClassName('sub-tab');
             const slider = container.querySelector('.slider');
             const tabWidth = (container.offsetWidth - 20) / tabs.length;
+            
             slider.style.width = `${tabWidth}px`;
             slider.style.left = `${(tabWidth * index) + 10}px`;
+            
             for (let t of tabs) t.classList.remove('active');
             tabs[index].classList.add('active');
+
+            // ここで中身の切り替え処理が必要なら追加
+            const content = document.getElementById(`${sectionId}-content`);
+            if(content) content.innerText = `${sectionId} - Tab ${index + 1} の内容を表示予定`;
         }
 
         function updateHeader() {
@@ -363,6 +381,9 @@
         window.onload = () => { 
             currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
             updateHeader(); initHome(); renderMypage(); 
+            // 初期表示でスライダーの位置を調整
+            moveSlider('league', 0);
+            moveSlider('data', 0);
         };
     </script>
 </body>
