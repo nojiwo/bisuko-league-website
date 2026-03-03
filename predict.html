@@ -1,255 +1,299 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>JUMP予想</title>
-  
-  <script>
-    const ICON_BASE = "https://raw.githubusercontent.com/[あなたのユーザー名]/[リポジトリ名]/main/";
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ジャンプ掲載順予想</title>
+    <style>
+        :root {
+            --main-blue: #007bff;
+            --header-blue: #007bff;
+            --footer-bg: #2d2d2d;
+            --bg-gray: #e9e9f0;
+            --text-gray: #888;
+            --border-gray: #ccc;
+        }
 
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <style>
-    /* CSSは最新のデザインを反映 */
-    :root { 
-      --main: #007aff; /* iOSブルー */
-      --bg: #f2f2f7; 
-      --nav-dark: #1c1c1e;
-      --tab-inactive: #8e8e93;
-    }
-    body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; color: #000; padding-bottom: 90px; }
-    
-    /* ヘッダー・認証デザイン */
-    header { background: var(--main); padding: 15px; display: flex; justify-content: center; align-items: center; position: sticky; top: 0; z-index: 1000; height: 50px; }
-    .user-pill { background: rgba(255,255,255,0.2); color: white; padding: 6px 30px; border-radius: 50px; border: 2px solid white; font-weight: bold; }
-    
-    .auth-container { max-width: 400px; margin: 40px auto; padding: 0 20px; }
-    .hidden { display: none !important; }
-    .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    .title-left { color: var(--main); border-left: 5px solid var(--main); padding-left: 10px; margin-bottom: 20px; font-weight: bold; font-size: 1.2rem; }
-    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-size: 16px; }
-    .btn { background: var(--main); color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
-    .btn-outline { background: white; color: var(--main); border: 2px solid var(--main); }
-    
-    /* ページ表示と並べ替え */
-    .page { display: none; padding: 15px; }
-    .page.active { display: block; }
-    
-    /* 統計・データテーブル（前回の構造を維持） */
-    .scroll-x { overflow-x: auto; margin-bottom: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
-    .data-table, .stats-table { width: 100%; border-collapse: collapse; background: white; font-size: 0.8rem; }
-    .data-table th, .data-table td, .stats-table th, .stats-table td { border: 1px solid #e2e8f0; padding: 10px 4px; text-align: center; }
-    .color-top { background-color: #ff4d4d !important; font-weight: bold; color: white; }
-    .color-center { background-color: #fefcbf !important; font-weight: bold; }
-    
-    .sort-item { background: white; border: 1px solid #e2e8f0; margin-bottom: 6px; border-radius: 8px; display: flex; align-items: center; overflow: hidden; }
-    .handle { background: var(--main); color: white; padding: 15px 12px; cursor: grab; }
-    .rank-num { width: 35px; text-align: center; font-weight: bold; color: var(--main); }
-    .item-name { flex: 1; padding: 12px 5px; font-size: 16px; }
-    .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-right: 10px; font-weight: bold; }
-    .badge-top { background: #ff4d4d; color: white; }
-    .badge-center { background: #fefcbf; color: #000; }
-    .event-card { background: #f0f4ff; border: 1px solid #d0daff; padding: 15px; border-radius: 10px; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: var(--bg-gray);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
 
-    /* 新しいナビゲーションデザイン */
-    .nav-container { position: fixed; bottom: 0; width: 100%; height: 75px; background: var(--nav-dark); z-index: 2000; border-top: 1px solid #333; display: flex; justify-content: space-around; padding-bottom: env(safe-area-inset-bottom); }
-    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--tab-inactive); font-size: 10px; font-weight: bold; cursor: pointer; text-decoration: none; }
-    .nav-item.active { color: var(--main); }
-    .nav-icon { width: 28px; height: 28px; margin-bottom: 4px; }
-    
-    /* Loading */
-    #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-    .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid var(--main); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 10px; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  </style>
+        /* ヘッダーエリア */
+        header {
+            background-color: var(--header-blue);
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .user-badge {
+            display: inline-block;
+            background-color: #1a3c5e;
+            color: white;
+            padding: 10px 40px;
+            border-radius: 30px;
+            border: 2px solid white;
+            font-size: 1.2rem;
+        }
+
+        /* コンテンツエリア */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 80px; /* フッター分 */
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* サブナビゲーション（Data, League等） */
+        .sub-nav {
+            background-color: #333;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+
+        .sub-nav button {
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            font-size: 1rem;
+            padding: 5px 15px;
+            cursor: pointer;
+        }
+
+        .sub-nav button.active {
+            background-color: var(--main-blue);
+            color: white;
+            border-radius: 15px;
+        }
+
+        /* Home画面のカード */
+        .card {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 40px;
+            border: 2px solid var(--main-blue);
+            text-align: center;
+            min-height: 150px;
+        }
+
+        .status-card {
+            border: 1px solid var(--border-gray);
+            background: white;
+            margin: 20px;
+            border-radius: 40px;
+            overflow: hidden;
+        }
+
+        .status-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-gray);
+        }
+
+        .status-footer {
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+
+        .status-red {
+            color: #ff4d4d;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* My Page リスト */
+        .list-group {
+            margin-top: 10px;
+        }
+
+        .list-label {
+            padding-left: 10px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .list-item {
+            background: #d9d9d9;
+            border-bottom: 1px solid #999;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logout-btn {
+            display: block;
+            width: 200px;
+            margin: 30px auto;
+            padding: 15px;
+            border: 2px solid red;
+            background: white;
+            color: red;
+            border-radius: 30px;
+            text-align: center;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        /* 下部ナビゲーション */
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: var(--footer-bg);
+            border-top: 4px solid var(--main-blue);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+        }
+
+        .nav-item {
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-gray);
+            font-size: 0.7rem;
+            flex: 1;
+        }
+
+        .nav-item.active {
+            color: var(--main-blue);
+        }
+
+        .nav-item img {
+            width: 35px;
+            height: 35px;
+            display: block;
+            margin: 0 auto 2px;
+        }
+
+        .placeholder-text {
+            text-align: center;
+            margin-top: 100px;
+            font-size: 1.2rem;
+        }
+    </style>
 </head>
 <body>
 
-<div id="loading-overlay" class="hidden">
-  <div class="spinner"></div>
-  <div style="font-weight:bold; color:var(--main);">通信中...</div>
-</div>
+    <header>
+        <div class="user-badge">のじを。さん</div>
+    </header>
 
-<header id="header-bar" class="hidden">
-  <div class="user-pill" id="headerName">-- さん</div>
-</header>
+    <main id="content">
+        <section id="home" class="page-section active">
+            <div class="card" style="background-color: #c9defa;">
+                ここに表示するお知らせを表示します。
+            </div>
+            <div class="status-card">
+                <div class="status-header">
+                    <div>15号</div>
+                    <div class="status-red">未提出</div>
+                </div>
+                <div class="status-footer">
+                    第五回びすこリーグ予選：未参加
+                </div>
+            </div>
+        </section>
 
-<div id="auth-section" class="auth-container">
-  <div id="view-login" class="card">
-    <div class="title-left">Login</div>
-    <input type="text" id="loginName" placeholder="ユーザー名">
-    <input type="password" id="loginPw" placeholder="パスワード">
-    <button class="btn" onclick="onLogin()">ログイン</button>
-  </div>
-</div>
+        <section id="league" class="page-section">
+            <div class="sub-nav">
+                <button>予想提出</button>
+                <button class="active">予想提出</button>
+            </div>
+            <div class="placeholder-text">ここでドラッグ＆ドロップの<br>並べ替え選択肢</div>
+        </section>
 
-<div id="app-section" class="hidden">
-  <div id="page-mypage" class="page active">
-    <div class="card">
-      <div class="title-left" id="userGreet"></div>
-      <div id="newsContent" style="padding:10px; background:#fffaf0; border:1px dashed #ccc; border-radius:8px; margin-bottom:15px;"></div>
-      <div style="text-align:center; padding:15px; margin-top:10px; background:#edf2f7; border-radius:10px;">
-        <div id="issueText" style="font-size:1.2rem; font-weight:bold; margin-bottom:5px;"></div>
-        <div id="submitStatus"></div>
-        <div id="eventStatus" style="border-top:1px solid #cbd5e0; margin-top:10px; padding-top:10px; font-size:0.85rem;"></div>
-      </div>
-      <button class="btn btn-outline" onclick="logout()" style="color:red; border-color:red; margin-top:20px;">ログアウト</button>
-    </div>
-  </div>
-  
-  <div id="page-predict" class="page">
-    <div class="card">
-      <div class="title-left">掲載順予想</div>
-      <div id="sortList">読み込み中...</div>
-      <button class="btn" id="savePredictBtn" onclick="onSavePredict()">予想を送信する</button>
-    </div>
-  </div>
+        <section id="data" class="page-section">
+            <div class="sub-nav">
+                <button class="active">8週統計</button>
+                <button>8週掲載順</button>
+                <button>みんなの予想</button>
+            </div>
+            <div class="placeholder-text">ここで8週統計の表</div>
+        </section>
 
-  <div id="page-event" class="page"><div class="card"><div class="title-left">予選参加希望</div><div id="eventList">読み込み中...</div></div></div>
+        <section id="qa" class="page-section">
+            <div class="placeholder-text">ここで問い合せ</div>
+        </section>
 
-  <div id="page-stats" class="page"><div class="card"><div class="title-left">直近8週の統計</div><div class="scroll-x"><table class="stats-table"><thead id="statsHead"></thead><tbody id="statsBody"></tbody></table></div></div></div>
+        <section id="mypage" class="page-section">
+            <div class="list-group">
+                <div class="list-label">ユーザー情報</div>
+                <div class="list-item">ユーザー名 <span>＞</span></div>
+                <div class="list-item">ユーザーID <span>＞</span></div>
+                <div class="list-item">パスワード <span>＞</span></div>
+                <div class="list-item">秘密のキーワード <span>＞</span></div>
+            </div>
+            <div class="list-group" style="margin-top:20px;">
+                <div class="list-label">個人成績</div>
+                <div class="list-item">過去の成績 <span>＞</span></div>
+            </div>
+            <a href="#" class="logout-btn">ログアウト</a>
+        </section>
+    </main>
 
-  <div id="page-past-jumps" class="page"><div class="card"><div class="title-left">過去の掲載順</div><div class="scroll-x"><table class="data-table" style="width:800px;"><thead id="pastJumpsHead"></thead><tbody id="pastJumpsBody"></tbody></table></div></div></div>
+    <footer>
+        <a href="#" class="nav-item active" onclick="showPage('home')">
+            <img src="icon-b-home.svg" alt="Home">
+            Home
+        </a>
+        <a href="#" class="nav-item" onclick="showPage('league')">
+            <img src="icon-g-league.svg" alt="League">
+            League
+        </a>
+        <a href="#" class="nav-item" onclick="showPage('data')">
+            <img src="icon-g-data.svg" alt="Data">
+            Data
+        </a>
+        <a href="#" class="nav-item" onclick="showPage('qa')">
+            <img src="icon-g-q&a.svg" alt="Q&A">
+            Q&A
+        </a>
+        <a href="#" class="nav-item" onclick="showPage('mypage')">
+            <img src="icon-g-mypage.svg" alt="My Page">
+            My Page
+        </a>
+    </footer>
 
-  <div id="page-everyone" class="page"><div class="card"><div class="title-left">みんなの予想</div><div id="everyoneArea"></div></div></div>
+    <script>
+        // 簡易的なタブ切り替えロジック
+        function showPage(pageId) {
+            // 全セクションを非表示
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            // 指定セクションを表示
+            document.getElementById(pageId).classList.add('active');
 
-  <div id="page-scores" class="page"><div class="card"><div class="title-left">過去の成績</div><table class="data-table"><thead><tr><th>年度</th><th>号数</th><th>点数</th></tr></thead><tbody id="scoreTableBody"></tbody></table></div></div>
-  
-  <div id="page-contact" class="page">
-    <div class="card">
-      <div class="title-left">問い合わせ</div>
-      <select id="contactCategory">
-        <option value="機能・不具合">機能・不具合</option>
-        <option value="その他">その他</option>
-      </select>
-      <textarea id="contactContent" rows="5" placeholder="内容"></textarea>
-      <button class="btn" onclick="onSendInquiry()">送信する</button>
-    </div>
-  </div>
-</div>
+            // ナビゲーションのアイコン色切り替え
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                const img = item.querySelector('img');
+                const type = item.innerText.toLowerCase().trim().replace(' ', '');
+                // q&a の特殊処理
+                const fileName = type === 'q&a' ? 'q&a' : type;
+                img.src = `icon-g-${fileName}.svg`;
+            });
 
-<nav class="nav-container" id="bottom-nav">
-  <div class="nav-item active" onclick="switchTab('mypage', this)">
-    <img id="icon-home" class="nav-icon"><span>ホーム</span>
-  </div>
-  <div class="nav-item" onclick="switchTab('predict', this)">
-    <img id="icon-league" class="nav-icon"><span>予想提出</span>
-  </div>
-  <div class="nav-item" onclick="switchTab('stats', this)">
-    <img id="icon-data" class="nav-icon"><span>8週統計</span>
-  </div>
-  <div class="nav-item" onclick="switchTab('contact', this)">
-    <img id="icon-qna" class="nav-icon"><span>Q&A</span>
-  </div>
-</nav>
-
-<script>
-  let user = JSON.parse(localStorage.getItem('jump_user'));
-  let currentData = { isOpen: false };
-  let sortableInstance = null;
-
-  window.onload = () => { if (user) showApp(); else showAuth(); };
-
-  function toggleLoading(show) {
-    const loader = document.getElementById('loading-overlay');
-    if (show) loader.classList.remove('hidden');
-    else loader.classList.add('hidden');
-  }
-
-  function showAuth() { document.getElementById('auth-section').classList.remove('hidden'); document.getElementById('app-section').classList.add('hidden'); document.getElementById('bottom-nav').classList.add('hidden'); document.getElementById('header-bar').classList.add('hidden'); }
-  function showApp() { document.getElementById('auth-section').classList.add('hidden'); document.getElementById('app-section').classList.remove('hidden'); document.getElementById('bottom-nav').classList.remove('hidden'); document.getElementById('header-bar').classList.remove('hidden'); switchTab('mypage', document.querySelector('.nav-item')); }
-
-  function switchTab(tab, el) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + tab).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    if(el) el.classList.add('active');
-    updateIcons(tab);
-
-    if(tab === 'mypage') loadMyPage();
-    if(tab === 'predict') goPredict();
-    if(tab === 'event') loadEventPage();
-    if(tab === 'stats') goStats();
-    if(tab === 'past-jumps') goPastJumps();
-    if(tab === 'everyone') goEveryone();
-    if(tab === 'scores') goPastScores();
-  }
-
-  function updateIcons(activeTab) {
-    const tabs = ['home', 'league', 'data', 'qna'];
-    tabs.forEach(t => {
-      const img = document.getElementById('icon-' + t);
-      const color = (t === activeTab || (activeTab==='mypage'&&t==='home') || (activeTab==='stats'&&t==='data') || (activeTab==='contact'&&t==='qna')) ? 'b' : 'g';
-      img.src = `${ICON_BASE}icon-${color}-${t}.svg`;
-    });
-  }
-
-  // --- 全機能統合ロジック ---
-  function onLogin() {
-    const n = document.getElementById('loginName').value, p = document.getElementById('loginPw').value;
-    if(!n || !p) return alert("入力してください");
-    toggleLoading(true);
-    google.script.run.withSuccessHandler(res => {
-      toggleLoading(false);
-      user = res;
-      localStorage.setItem('jump_user', JSON.stringify(res));
-      showApp();
-    }).withFailureHandler(e => { toggleLoading(false); alert(e.message); }).login(n, p);
-  }
-
-  function loadMyPage() {
-    google.script.run.withSuccessHandler(data => {
-      currentData = data;
-      document.getElementById('headerName').innerText = user.name + " さん";
-      document.getElementById('userGreet').innerText = user.name + " さん";
-      document.getElementById('newsContent').innerText = data.news;
-      document.getElementById('issueText').innerText = data.issueName;
-      document.getElementById('submitStatus').innerHTML = data.hasSubmitted ? 
-        '<span style="color:#38a169; font-weight:bold;">提出済み ✅</span>' : 
-        '<span style="color:#e53e3e; font-weight:bold;">未提出 ⚠️</span>';
-      const evBox = document.getElementById('eventStatus');
-      evBox.innerHTML = data.activeEvent ? `${data.activeEvent.name}: ${data.activeEvent.isParticipating ? '参加中' : '未参加'}` : "イベントなし";
-    }).getMyPageData(user.id, user.name);
-  }
-
-  function goPredict() {
-    google.script.run.withSuccessHandler(data => {
-      currentData = data;
-      const container = document.getElementById('sortList');
-      if (!currentData.isOpen) {
-        container.innerHTML = `<div style="text-align:center; padding:40px; color:#e53e3e; font-weight:bold;">🔒 受付期間外です</div>`;
-        document.getElementById('savePredictBtn').style.display = 'none';
-        return;
-      }
-      document.getElementById('savePredictBtn').style.display = 'block';
-      
-      google.script.run.withSuccessHandler(predictData => {
-        container.innerHTML = "";
-        predictData.list.forEach((name, idx) => {
-          const item = document.createElement('div');
-          item.className = "sort-item"; item.dataset.name = name;
-          item.innerHTML = `<div class="handle">⠿</div><div class="rank-num">${idx+1}</div><div class="item-name">${name}</div>`;
-          container.appendChild(item);
-        });
-        if (sortableInstance) sortableInstance.destroy();
-        sortableInstance = new Sortable(container, { handle: '.handle', animation: 150 });
-      }).getPredictionInitData(user.id, currentData.jumpId);
-    }).getMyPageData(user.id, user.name);
-  }
-
-  function onSavePredict() {
-    const list = Array.from(document.getElementById('sortList').children).map(i => i.dataset.name);
-    toggleLoading(true);
-    google.script.run.withSuccessHandler(msg => { alert(msg); switchTab('mypage', document.querySelector('.nav-item')); })
-    .submitPrediction(user.id, currentData.jumpId, list);
-  }
-  
-  function logout() { localStorage.clear(); location.reload(); }
-  function onSendInquiry() { /* 前回ロジック維持 */ }
-  // ... 他の機能関数も維持 ...
-</script>
+            // クリックされたアイテムをアクティブ化
+            const activeItem = event.currentTarget;
+            activeItem.classList.add('active');
+            const activeType = activeItem.innerText.toLowerCase().trim().replace(' ', '');
+            const activeFileName = activeType === 'q&a' ? 'q&a' : activeType;
+            activeItem.querySelector('img').src = `icon-b-${activeFileName}.svg`;
+        }
+    </script>
 </body>
 </html>
