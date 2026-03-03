@@ -116,7 +116,7 @@
     <main>
         <section id="home" class="page-section active">
             <div class="home-container" id="home-content">
-                <div style="text-align:center; padding:50px;">データを読み込み中...</div>
+                <div style="text-align:center; padding:50px;">同期中...</div>
             </div>
         </section>
 
@@ -154,6 +154,7 @@
         let currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
         let mypageView = currentUser ? 'dashboard' : 'login';
 
+        // --- 画面切り替え ---
         function showMainPage(pageId, element) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
@@ -166,6 +167,7 @@
             const activeType = element.innerText.toLowerCase().trim().replace(' ', '');
             element.querySelector('img').src = `icon-b-${activeType === 'q&a' ? 'q&a' : activeType}.svg`;
 
+            // 各タブ固有の初期化
             if(pageId === 'home') initHome();
             if(pageId === 'league') moveSlider('league', 0);
             if(pageId === 'data') moveSlider('data', 0);
@@ -173,15 +175,28 @@
             updateHeader();
         }
 
-        // --- Home機能 ---
+        // --- Home機能：データ取得 ---
         async function initHome() {
             const container = document.getElementById('home-content');
             const userId = currentUser ? currentUser.id : null;
 
-            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getHomeData", userId }) })
-            .then(r => r.json()).then(res => {
+            // ローディング表示（初回のみ）
+            if (container.innerHTML.trim() === "" || container.innerHTML.includes('同期中')) {
+                container.innerHTML = `<div style="text-align:center; padding:50px;">データを取得中...</div>`;
+            }
+
+            try {
+                const response = await fetch(GAS_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify({ action: "getHomeData", userId }) 
+                });
+                const res = await response.json();
+                
+                // 表示用ジャンプIDの作成
                 const issueDisplay = formatJumpId(res.issueId);
-                container.innerHTML = `
+                
+                // HTMLを組み立ててから一気に流し込む（チラつき防止）
+                let html = `
                     <div class="notice-card">
                         <div class="notice-title">📢 お知らせ</div>
                         <div class="notice-content">${res.notice || '現在お知らせはありません。'}</div>
@@ -191,26 +206,31 @@
                         <div class="status-row">
                             <span class="status-label">募集中の号</span>
                             <span class="status-value">${issueDisplay}</span>
+                        </div>`;
+                
+                if (userId) {
+                    html += `
+                        <div class="status-row">
+                            <span class="status-label">予想提出</span>
+                            <span class="status-value ${res.isSubmitted ? 'ok' : 'ng'}">${res.isSubmitted ? '提出済み' : '未提出'}</span>
                         </div>
-                        ${userId ? `
-                            <div class="status-row">
-                                <span class="status-label">予想提出</span>
-                                <span class="status-value ${res.isSubmitted ? 'ok' : 'ng'}">${res.isSubmitted ? '提出済み' : '未提出'}</span>
-                            </div>
-                            <div class="status-row">
-                                <span class="status-label">イベント参加</span>
-                                <span class="status-value ${res.isParticipating ? 'ok' : 'ng'}">${res.isParticipating ? '参加中' : '未参加'}</span>
-                            </div>
-                        ` : `
-                            <div style="text-align:center; font-size:0.8rem; color:#888; margin-top:10px;">
-                                ログインすると提出状況が表示されます
-                            </div>
-                        `}
-                    </div>
-                `;
-            }).catch(() => {
-                container.innerHTML = `<div style="text-align:center; padding:20px;">データの読み込みに失敗しました</div>`;
-            });
+                        <div class="status-row">
+                            <span class="status-label">イベント参加</span>
+                            <span class="status-value ${res.isParticipating ? 'ok' : 'ng'}">${res.isParticipating ? '参加中' : '未参加'}</span>
+                        </div>`;
+                } else {
+                    html += `
+                        <div style="text-align:center; font-size:0.8rem; color:#888; margin-top:10px;">
+                            ログインすると提出状況が表示されます
+                        </div>`;
+                }
+                
+                html += `</div>`;
+                container.innerHTML = html;
+
+            } catch (e) {
+                container.innerHTML = `<div style="text-align:center; padding:20px;">同期に失敗しました</div>`;
+            }
         }
 
         function formatJumpId(id) {
@@ -239,10 +259,9 @@
             document.querySelector('.user-badge').innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん';
         }
 
+        // --- My Page 描画（ご提示いただいたコードを保持） ---
         function renderMypage() {
             const container = document.getElementById('mypage-container');
-            
-            // ログイン画面
             if (mypageView === 'login') {
                 container.innerHTML = `
                     <div class="auth-container">
@@ -257,9 +276,7 @@
                             <span onclick="mypageView='reset';renderMypage()">パスワードを忘れた方はこちら</span>
                         </div>
                     </div>`;
-            } 
-            // 新規登録画面
-            else if (mypageView === 'signup') {
+            } else if (mypageView === 'signup') {
                 container.innerHTML = `
                     <div class="notice-box">
                         <b>ユーザー名について:</b><br>8文字以内で設定してください。<br><br>
@@ -276,9 +293,7 @@
                         </button>
                         <div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div>
                     </div>`;
-            } 
-            // ログイン前パスワードリセット
-            else if (mypageView === 'reset') {
+            } else if (mypageView === 'reset') {
                 container.innerHTML = `
                     <div class="auth-container">
                         <input type="text" id="r-name" placeholder="ユーザー名">
@@ -291,22 +306,17 @@
                         </button>
                         <div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div>
                     </div>`;
-            } 
-            // ダッシュボード
-            else if (mypageView === 'dashboard') {
+            } else if (mypageView === 'dashboard') {
                 container.innerHTML = `
                     <div class="group-label">ユーザー情報</div>
                     <div class="list-item" onclick="mypageView='edit_name';renderMypage()">ユーザー名 <span>＞</span></div>
                     <div class="list-item no-arrow">ユーザーID <span style="font-size:0.9rem; color:#888;">${currentUser.id}</span></div>
                     <div class="list-item" onclick="mypageView='edit_pass';renderMypage()">パスワード <span>＞</span></div>
                     <div class="list-item" onclick="mypageView='edit_key';renderMypage()">秘密のキーワード <span>＞</span></div>
-                    
                     <div class="group-label">個人成績</div>
                     <div class="list-item" onclick="alert('成績画面は後ほど！')">過去の成績 <span>＞</span></div>
                     <div class="logout-btn-container"><button class="logout-btn" onclick="logout()">ログアウト</button></div>`;
-            }
-            // 編集画面
-            else if (mypageView.startsWith('edit_')) {
+            } else if (mypageView.startsWith('edit_')) {
                 renderEditView(container);
             }
         }
@@ -314,7 +324,6 @@
         function renderEditView(container) {
             const type = mypageView.replace('edit_', '');
             let title = "", currentLabel = "", inputHtml = "";
-
             if (type === 'name') {
                 title = "ユーザー名の変更";
                 currentLabel = `現在のユーザー名: <b>${currentUser.name}</b>`;
@@ -331,7 +340,6 @@
                 currentLabel = "現在のキーワードは非表示です";
                 inputHtml = `<input type="text" id="new-val" placeholder="新しい秘密のキーワード">`;
             }
-
             container.innerHTML = `
                 <div style="padding: 20px;">
                     <h3 style="margin-top:0;">${title}</h3>
@@ -440,9 +448,10 @@
         }
 
         window.onload = () => { 
+            currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
+            updateHeader(); 
             initHome();
             renderMypage(); 
-            updateHeader(); 
         };
     </script>
 </body>
