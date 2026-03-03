@@ -119,7 +119,6 @@
                 <div style="text-align:center; padding:50px;">同期中...</div>
             </div>
         </section>
-
         <section id="league" class="page-section">
             <div class="sub-nav-container" id="nav-league">
                 <button class="sub-tab active" onclick="moveSlider('league', 0)">予想提出</button>
@@ -150,11 +149,10 @@
     </footer>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxWbCA7gRrqyTr1Ti_CEeB_9fZHbzrC7TFJlYJLTEa2xBVEtleC2vR1NXdLufw3okJj/exec";
+        const GAS_URL = "ここにデプロイ後のURLを貼る";
         let currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
         let mypageView = currentUser ? 'dashboard' : 'login';
 
-        // --- 画面切り替え ---
         function showMainPage(pageId, element) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
@@ -166,8 +164,7 @@
             element.classList.add('active');
             const activeType = element.innerText.toLowerCase().trim().replace(' ', '');
             element.querySelector('img').src = `icon-b-${activeType === 'q&a' ? 'q&a' : activeType}.svg`;
-
-            // 各タブ固有の初期化
+            
             if(pageId === 'home') initHome();
             if(pageId === 'league') moveSlider('league', 0);
             if(pageId === 'data') moveSlider('data', 0);
@@ -175,15 +172,9 @@
             updateHeader();
         }
 
-        // --- Home機能：データ取得 ---
         async function initHome() {
             const container = document.getElementById('home-content');
             const userId = currentUser ? currentUser.id : null;
-
-            // ローディング表示（初回のみ）
-            if (container.innerHTML.trim() === "" || container.innerHTML.includes('同期中')) {
-                container.innerHTML = `<div style="text-align:center; padding:50px;">データを取得中...</div>`;
-            }
 
             try {
                 const response = await fetch(GAS_URL, { 
@@ -192,10 +183,7 @@
                 });
                 const res = await response.json();
                 
-                // 表示用ジャンプIDの作成
                 const issueDisplay = formatJumpId(res.issueId);
-                
-                // HTMLを組み立ててから一気に流し込む（チラつき防止）
                 let html = `
                     <div class="notice-card">
                         <div class="notice-title">📢 お知らせ</div>
@@ -213,21 +201,20 @@
                         <div class="status-row">
                             <span class="status-label">予想提出</span>
                             <span class="status-value ${res.isSubmitted ? 'ok' : 'ng'}">${res.isSubmitted ? '提出済み' : '未提出'}</span>
-                        </div>
+                        </div>`;
+                    
+                    if (res.showEventStatus) {
+                        html += `
                         <div class="status-row">
-                            <span class="status-label">イベント参加</span>
+                            <span class="status-label">予選参加希望</span>
                             <span class="status-value ${res.isParticipating ? 'ok' : 'ng'}">${res.isParticipating ? '参加中' : '未参加'}</span>
                         </div>`;
+                    }
                 } else {
-                    html += `
-                        <div style="text-align:center; font-size:0.8rem; color:#888; margin-top:10px;">
-                            ログインすると提出状況が表示されます
-                        </div>`;
+                    html += `<div style="text-align:center; font-size:0.8rem; color:#888; margin-top:10px;">ログインすると提出状況が表示されます</div>`;
                 }
-                
                 html += `</div>`;
                 container.innerHTML = html;
-
             } catch (e) {
                 container.innerHTML = `<div style="text-align:center; padding:20px;">同期に失敗しました</div>`;
             }
@@ -259,7 +246,6 @@
             document.querySelector('.user-badge').innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん';
         }
 
-        // --- My Page 描画（ご提示いただいたコードを保持） ---
         function renderMypage() {
             const container = document.getElementById('mypage-container');
             if (mypageView === 'login') {
@@ -309,7 +295,7 @@
             } else if (mypageView === 'dashboard') {
                 container.innerHTML = `
                     <div class="group-label">ユーザー情報</div>
-                    <div class="list-item" onclick="mypageView='edit_name';renderMypage()">ユーザー名 <span>＞</span></div>
+                    <div class="list-item no-arrow">ユーザー名 <span style="font-size:0.9rem; color:#888;">${currentUser.name}</span></div>
                     <div class="list-item no-arrow">ユーザーID <span style="font-size:0.9rem; color:#888;">${currentUser.id}</span></div>
                     <div class="list-item" onclick="mypageView='edit_pass';renderMypage()">パスワード <span>＞</span></div>
                     <div class="list-item" onclick="mypageView='edit_key';renderMypage()">秘密のキーワード <span>＞</span></div>
@@ -324,11 +310,7 @@
         function renderEditView(container) {
             const type = mypageView.replace('edit_', '');
             let title = "", currentLabel = "", inputHtml = "";
-            if (type === 'name') {
-                title = "ユーザー名の変更";
-                currentLabel = `現在のユーザー名: <b>${currentUser.name}</b>`;
-                inputHtml = `<input type="text" id="new-val" placeholder="新しいユーザー名">`;
-            } else if (type === 'pass') {
+            if (type === 'pass') {
                 title = "パスワードの変更";
                 currentLabel = "現在の設定: <b>********</b>";
                 inputHtml = `
@@ -436,7 +418,6 @@
             .then(r => r.json()).then(res => {
                 if(res.success) {
                     alert("更新しました");
-                    if(type === 'name') currentUser.name = val;
                     localStorage.setItem('jump_user', JSON.stringify(currentUser));
                     mypageView = 'dashboard'; renderMypage(); updateHeader();
                 } else { alert("失敗しました"); }
