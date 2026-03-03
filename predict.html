@@ -50,13 +50,13 @@
         .page-section { display: none; padding-bottom: 80px; }
         .page-section.active { display: block; }
 
-        /* --- サブタブ（スライド・カプセル型） --- */
+        /* --- サブタブ（カプセル型スライド） --- */
         .sub-nav-container {
             background-color: #333;
             position: relative;
             display: flex;
-            height: 54px; /* 少し高さを調整 */
-            padding: 0 10px; /* 左右に少し余裕を */
+            height: 54px;
+            padding: 0 10px;
             align-items: center;
         }
         .sub-tab {
@@ -75,12 +75,11 @@
         }
         .sub-tab.active { color: white; }
 
-        /* スライドするカプセル型の青背景 */
         .slider {
             position: absolute;
-            height: 34px; /* タブより少し小さくして浮いている感を出す */
+            height: 34px;
             background-color: var(--main-blue);
-            border-radius: 25px; /* 左右を半円に */
+            border-radius: 25px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1;
         }
@@ -154,8 +153,8 @@
 
         <section id="league" class="page-section">
             <div class="sub-nav-container" id="nav-league">
-                <button class="sub-tab" onclick="moveSlider('league', 0)">予想提出</button>
-                <button class="sub-tab active" onclick="moveSlider('league', 1)">予想提出</button>
+                <button class="sub-tab active" onclick="moveSlider('league', 0)">予想提出</button>
+                <button class="sub-tab" onclick="moveSlider('league', 1)">予選参加希望</button>
                 <span class="slider"></span>
             </div>
             <div id="league-content" class="placeholder-text">ここでドラッグ＆ドロップの並べ替え</div>
@@ -208,19 +207,17 @@
     <script>
         function moveSlider(sectionId, index) {
             const container = document.getElementById(`nav-${sectionId}`);
+            if (!container) return;
             const tabs = container.getElementsByClassName('sub-tab');
             const slider = container.querySelector('.slider');
             
             for (let tab of tabs) tab.classList.remove('active');
             tabs[index].classList.add('active');
 
-            // スライダーの移動計算
-            // コンテナ自体のpadding(左右10px)を考慮
             const containerPadding = 10;
             const availableWidth = container.offsetWidth - (containerPadding * 2);
             const tabWidth = availableWidth / tabs.length;
             
-            // スライダーの幅を少し小さく見せるための微調整（文字の長さに合わせる感じ）
             slider.style.width = `${tabWidth}px`;
             slider.style.left = `${(tabWidth * index) + containerPadding}px`;
 
@@ -229,7 +226,8 @@
                 const labels = ['ここで8週統計の表', 'ここで8週掲載順の表', 'ここでみんなの予想の表'];
                 content.innerText = labels[index];
             } else if(sectionId === 'league') {
-                content.innerText = index === 0 ? 'ここで予選参加可否のボタン' : 'ここでドラッグ＆ドロップの並べ替え';
+                // インデックスに合わせて表示内容を切り替え
+                content.innerText = index === 0 ? 'ここでドラッグ＆ドロップの並べ替え' : 'ここで予選参加可否のボタン';
             }
         }
 
@@ -249,22 +247,26 @@
             const activeFileName = activeType === 'q&a' ? 'q&a' : activeType;
             element.querySelector('img').src = `icon-b-${activeFileName}.svg`;
 
-            // 切り替え時にスライダーを再描画（レンダリング後の幅を取得するため少し遅延）
+            // Leagueを開いたときは 0番目（予想提出）を初期表示に
             setTimeout(() => {
-                if(pageId === 'league') moveSlider('league', 1);
+                if(pageId === 'league') moveSlider('league', 0);
                 if(pageId === 'data') moveSlider('data', 0);
             }, 10);
         }
 
         window.onload = () => {
-            moveSlider('league', 1);
+            // 初期化を 0（左側）にセット
+            moveSlider('league', 0);
             moveSlider('data', 0);
         };
         
-        // 画面リサイズ時にもスライダー位置を調整
         window.onresize = () => {
-            if(document.getElementById('league').classList.contains('active')) moveSlider('league', 1);
-            if(document.getElementById('data').classList.contains('active')) moveSlider('data', 0);
+            // リサイズ時も現在のアクティブなタブに合わせて再計算
+            const activeLeagueTab = Array.from(document.querySelectorAll('#nav-league .sub-tab')).findIndex(t => t.classList.contains('active'));
+            const activeDataTab = Array.from(document.querySelectorAll('#nav-data .sub-tab')).findIndex(t => t.classList.contains('active'));
+            
+            if(document.getElementById('league').classList.contains('active')) moveSlider('league', activeLeagueTab);
+            if(document.getElementById('data').classList.contains('active')) moveSlider('data', activeDataTab);
         };
     </script>
 </body>
