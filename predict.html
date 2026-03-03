@@ -15,66 +15,51 @@
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: sans-serif;
             background-color: var(--bg-gray);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            display: flex; flex-direction: column;
+            height: 100vh; overflow: hidden;
         }
 
         /* ヘッダー */
         header {
             background-color: var(--header-blue);
-            padding: 20px 0;
-            text-align: center;
-            flex-shrink: 0;
+            padding: 20px 0; text-align: center; flex-shrink: 0;
         }
         .user-badge {
             display: inline-block;
             background-color: #1a3c5e;
-            color: white;
-            padding: 8px 35px;
-            border-radius: 30px;
-            border: 2px solid white;
+            color: white; padding: 8px 35px;
+            border-radius: 30px; border: 2px solid white;
         }
 
-        /* メインコンテンツ */
-        main {
-            flex: 1;
-            overflow-y: auto;
-            position: relative;
-        }
+        /* メイン */
+        main { flex: 1; overflow-y: auto; position: relative; }
         .page-section { display: none; padding-bottom: 80px; }
         .page-section.active { display: block; }
 
-        /* --- サブタブ（カプセル型スライド） --- */
+        /* --- サブタブ（スライド・カプセル背景＋アンダーライン） --- */
         .sub-nav-container {
             background-color: #333;
             position: relative;
             display: flex;
-            height: 54px;
+            height: 60px; /* 線を考慮して少し高く */
             padding: 0 10px;
             align-items: center;
+            border-bottom: 2px solid #555; /* ベースの細いグレー線 */
         }
         .sub-tab {
-            flex: 1;
-            color: var(--text-gray);
-            border: none;
-            background: none;
-            font-size: 0.9rem;
-            z-index: 2;
-            cursor: pointer;
-            transition: color 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            flex: 1; color: var(--text-gray);
+            border: none; background: none;
+            font-size: 0.9rem; z-index: 2;
+            cursor: pointer; transition: color 0.3s;
+            display: flex; align-items: center; justify-content: center;
             height: 100%;
         }
-        .sub-tab.active { color: white; }
+        .sub-tab.active { color: white; font-weight: bold; }
 
+        /* スライドする青い背景（カプセル型） */
         .slider {
             position: absolute;
             height: 34px;
@@ -82,51 +67,42 @@
             border-radius: 25px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1;
+            /* 下に連動する青い線を追加 */
+        }
+        .slider::after {
+            content: "";
+            position: absolute;
+            bottom: -13px; /* コンテナの底に合わせる調整 */
+            left: 0;
+            width: 100%;
+            height: 4px; /* 線の太さ */
+            background-color: var(--main-blue);
+            border-radius: 2px 2px 0 0;
         }
 
-        /* --- Home画面 --- */
+        /* --- Home画面のカード（中央揃え） --- */
         .card {
-            background: #c9defa;
-            margin: 20px;
-            padding: 40px 20px;
-            border-radius: 40px;
-            border: 2px solid var(--main-blue);
-            text-align: center;
+            background: #c9defa; margin: 20px;
+            padding: 40px 20px; border-radius: 40px;
+            border: 2px solid var(--main-blue); text-align: center;
         }
         .status-card {
-            border: 1px solid var(--border-gray);
-            background: white;
-            margin: 20px;
-            border-radius: 40px;
-            text-align: center;
-            overflow: hidden;
+            border: 1px solid var(--border-gray); background: white;
+            margin: 20px; border-radius: 40px;
+            text-align: center; overflow: hidden;
         }
         .status-header { padding: 25px; border-bottom: 1px solid var(--border-gray); }
         .status-red { color: #ff4d4d; font-size: 1.6rem; font-weight: bold; margin-top: 5px;}
         .status-footer { padding: 12px; font-size: 0.85rem; color: #333; }
 
-        /* --- My Page --- */
-        .list-item {
-            background: #d9d9d9;
-            border-bottom: 1px solid #aaa;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-        }
-
         /* --- フッターナビ --- */
         footer {
-            position: fixed;
-            bottom: 0; width: 100%;
+            position: fixed; bottom: 0; width: 100%;
             background-color: var(--footer-bg);
             border-top: 4px solid var(--main-blue);
-            display: flex;
-            padding: 8px 0;
+            display: flex; padding: 8px 0;
         }
-        .nav-item {
-            flex: 1; text-align: center; text-decoration: none;
-            color: var(--text-gray); font-size: 0.7rem;
-        }
+        .nav-item { flex: 1; text-align: center; text-decoration: none; color: var(--text-gray); font-size: 0.7rem; }
         .nav-item.active { color: var(--main-blue); }
         .nav-item img { width: 30px; height: 30px; display: block; margin: 0 auto 2px; }
 
@@ -170,20 +146,8 @@
             <div id="data-content" class="placeholder-text">ここで8週統計の表</div>
         </section>
 
-        <section id="qa" class="page-section">
-            <div class="placeholder-text">ここで問い合せ</div>
-        </section>
-
-        <section id="mypage" class="page-section">
-            <div style="padding: 15px 10px 5px; font-size: 0.9rem; color:#666;">ユーザー情報</div>
-            <div class="list-item">ユーザー名 <span>＞</span></div>
-            <div class="list-item">ユーザーID <span>＞</span></div>
-            <div class="list-item">パスワード <span>＞</span></div>
-            <div class="list-item">秘密のキーワード <span>＞</span></div>
-            <div style="padding: 20px 10px 5px; font-size: 0.9rem; color:#666;">個人成績</div>
-            <div class="list-item">過去の成績 <span>＞</span></div>
-            <button style="display:block; width:220px; margin:30px auto; padding:12px; border:2px solid red; border-radius:30px; color:red; background:white; font-weight:bold;">ログアウト</button>
-        </section>
+        <section id="qa" class="page-section"><div class="placeholder-text">Q&A</div></section>
+        <section id="mypage" class="page-section"><div class="placeholder-text">My Page</div></section>
     </main>
 
     <footer>
@@ -226,7 +190,6 @@
                 const labels = ['ここで8週統計の表', 'ここで8週掲載順の表', 'ここでみんなの予想の表'];
                 content.innerText = labels[index];
             } else if(sectionId === 'league') {
-                // インデックスに合わせて表示内容を切り替え
                 content.innerText = index === 0 ? 'ここでドラッグ＆ドロップの並べ替え' : 'ここで予選参加可否のボタン';
             }
         }
@@ -247,7 +210,6 @@
             const activeFileName = activeType === 'q&a' ? 'q&a' : activeType;
             element.querySelector('img').src = `icon-b-${activeFileName}.svg`;
 
-            // Leagueを開いたときは 0番目（予想提出）を初期表示に
             setTimeout(() => {
                 if(pageId === 'league') moveSlider('league', 0);
                 if(pageId === 'data') moveSlider('data', 0);
@@ -255,16 +217,13 @@
         }
 
         window.onload = () => {
-            // 初期化を 0（左側）にセット
             moveSlider('league', 0);
             moveSlider('data', 0);
         };
         
         window.onresize = () => {
-            // リサイズ時も現在のアクティブなタブに合わせて再計算
             const activeLeagueTab = Array.from(document.querySelectorAll('#nav-league .sub-tab')).findIndex(t => t.classList.contains('active'));
             const activeDataTab = Array.from(document.querySelectorAll('#nav-data .sub-tab')).findIndex(t => t.classList.contains('active'));
-            
             if(document.getElementById('league').classList.contains('active')) moveSlider('league', activeLeagueTab);
             if(document.getElementById('data').classList.contains('active')) moveSlider('data', activeDataTab);
         };
