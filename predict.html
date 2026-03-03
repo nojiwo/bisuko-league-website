@@ -23,15 +23,10 @@
         }
 
         /* ヘッダー */
-        header {
-            background-color: var(--header-blue);
-            padding: 20px 0; text-align: center; flex-shrink: 0;
-        }
+        header { background-color: var(--header-blue); padding: 20px 0; text-align: center; flex-shrink: 0; }
         .user-badge {
-            display: inline-block;
-            background-color: #1a3c5e;
-            color: white; padding: 8px 35px;
-            border-radius: 30px; border: 2px solid white;
+            display: inline-block; background-color: #1a3c5e; color: white;
+            padding: 8px 35px; border-radius: 30px; border: 2px solid white;
         }
 
         /* メイン */
@@ -39,90 +34,69 @@
         .page-section { display: none; padding-bottom: 80px; }
         .page-section.active { display: block; }
 
-        /* --- サブタブ（スライド・カプセル背景＋アンダーライン） --- */
+        /* --- サブタブ（スライド・カプセル型） --- */
         .sub-nav-container {
-            background-color: #333;
-            position: relative;
-            display: flex;
-            height: 60px; /* 線を考慮して少し高く */
-            padding: 0 10px;
-            align-items: center;
-            border-bottom: 2px solid #555; /* ベースの細いグレー線 */
+            background-color: #333; position: relative; display: flex;
+            height: 60px; padding: 0 10px; align-items: center; border-bottom: 2px solid #555;
         }
         .sub-tab {
-            flex: 1; color: var(--text-gray);
-            border: none; background: none;
-            font-size: 0.9rem; z-index: 2;
-            cursor: pointer; transition: color 0.3s;
-            display: flex; align-items: center; justify-content: center;
-            height: 100%;
+            flex: 1; color: var(--text-gray); border: none; background: none;
+            font-size: 0.9rem; z-index: 2; cursor: pointer; transition: color 0.3s;
+            display: flex; align-items: center; justify-content: center; height: 100%;
         }
         .sub-tab.active { color: white; font-weight: bold; }
-
-        /* スライドする青い背景（カプセル型） */
         .slider {
-            position: absolute;
-            height: 34px;
-            background-color: var(--main-blue);
-            border-radius: 25px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1;
-            /* 下に連動する青い線を追加 */
+            position: absolute; height: 34px; background-color: var(--main-blue);
+            border-radius: 25px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1;
         }
         .slider::after {
-            content: "";
-            position: absolute;
-            bottom: -13px; /* コンテナの底に合わせる調整 */
-            left: 0;
-            width: 100%;
-            height: 4px; /* 線の太さ */
-            background-color: var(--main-blue);
-            border-radius: 2px 2px 0 0;
+            content: ""; position: absolute; bottom: -13px; left: 0; width: 100%;
+            height: 4px; background-color: var(--main-blue); border-radius: 2px 2px 0 0;
         }
 
-        /* --- Home画面のカード（中央揃え） --- */
+        /* --- Home画面 --- */
         .card {
-            background: #c9defa; margin: 20px;
-            padding: 40px 20px; border-radius: 40px;
-            border: 2px solid var(--main-blue); text-align: center;
+            background: #c9defa; margin: 20px; padding: 40px 20px;
+            border-radius: 40px; border: 2px solid var(--main-blue); text-align: center;
         }
         .status-card {
             border: 1px solid var(--border-gray); background: white;
-            margin: 20px; border-radius: 40px;
-            text-align: center; overflow: hidden;
+            margin: 20px; border-radius: 40px; text-align: center; overflow: hidden;
         }
         .status-header { padding: 25px; border-bottom: 1px solid var(--border-gray); }
         .status-red { color: #ff4d4d; font-size: 1.6rem; font-weight: bold; margin-top: 5px;}
         .status-footer { padding: 12px; font-size: 0.85rem; color: #333; }
 
+        /* --- My Page / 認証スタイル --- */
+        .auth-form { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .input-group { position: relative; display: flex; flex-direction: column; }
+        .auth-form input { padding: 12px; border-radius: 8px; border: 1px solid var(--border-gray); font-size: 1rem; }
+        .eye-icon { position: absolute; right: 10px; top: 12px; cursor: pointer; font-size: 1.2rem; }
+        .primary-btn { background: var(--main-blue); color: white; border: none; padding: 14px; border-radius: 30px; font-weight: bold; cursor: pointer; }
+        .auth-links { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--main-blue); cursor: pointer; }
+        .notice-box { background: white; margin: 15px; padding: 15px; border-radius: 10px; font-size: 0.8rem; border-left: 5px solid gold; }
+        .list-item { background: #d9d9d9; border-bottom: 1px solid #aaa; padding: 15px; display: flex; justify-content: space-between; cursor: pointer; }
+        .logout-btn { display: block; width: 200px; margin: 30px auto; padding: 12px; border: 2px solid red; background: white; color: red; border-radius: 30px; font-weight: bold; }
+
         /* --- フッターナビ --- */
         footer {
-            position: fixed; bottom: 0; width: 100%;
-            background-color: var(--footer-bg);
-            border-top: 4px solid var(--main-blue);
-            display: flex; padding: 8px 0;
+            position: fixed; bottom: 0; width: 100%; background-color: var(--footer-bg);
+            border-top: 4px solid var(--main-blue); display: flex; padding: 8px 0;
         }
         .nav-item { flex: 1; text-align: center; text-decoration: none; color: var(--text-gray); font-size: 0.7rem; }
         .nav-item.active { color: var(--main-blue); }
         .nav-item img { width: 30px; height: 30px; display: block; margin: 0 auto 2px; }
-
-        .placeholder-text { text-align: center; margin-top: 50px; color: #666; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="user-badge">のじを。さん</div>
-    </header>
+    <header><div class="user-badge">読み込み中...</div></header>
 
-    <main>
+    <main id="main-content">
         <section id="home" class="page-section active">
             <div class="card">ここに表示するお知らせを表示します。</div>
             <div class="status-card">
-                <div class="status-header">
-                    <div>15号</div>
-                    <div class="status-red">未提出</div>
-                </div>
+                <div class="status-header"><div>15号</div><div class="status-red">未提出</div></div>
                 <div class="status-footer">第五回びすこリーグ予選：未参加</div>
             </div>
         </section>
@@ -133,7 +107,7 @@
                 <button class="sub-tab" onclick="moveSlider('league', 1)">予選参加希望</button>
                 <span class="slider"></span>
             </div>
-            <div id="league-content" class="placeholder-text">ここでドラッグ＆ドロップの並べ替え</div>
+            <div id="league-content" style="text-align:center; margin-top:50px;">並べ替えUI</div>
         </section>
 
         <section id="data" class="page-section">
@@ -143,90 +117,155 @@
                 <button class="sub-tab" onclick="moveSlider('data', 2)">みんなの予想</button>
                 <span class="slider"></span>
             </div>
-            <div id="data-content" class="placeholder-text">ここで8週統計の表</div>
+            <div id="data-content" style="text-align:center; margin-top:50px;">統計データ</div>
         </section>
 
-        <section id="qa" class="page-section"><div class="placeholder-text">Q&A</div></section>
-        <section id="mypage" class="page-section"><div class="placeholder-text">My Page</div></section>
+        <section id="qa" class="page-section"><div style="text-align:center; margin-top:50px;">Q&A</div></section>
+
+        <section id="mypage" class="page-section">
+            <div id="mypage-container"></div>
+        </section>
     </main>
 
     <footer>
-        <a href="#" class="nav-item active" onclick="showMainPage('home', this)">
-            <img src="icon-b-home.svg" alt="Home">Home
-        </a>
-        <a href="#" class="nav-item" onclick="showMainPage('league', this)">
-            <img src="icon-g-league.svg" alt="League">League
-        </a>
-        <a href="#" class="nav-item" onclick="showMainPage('data', this)">
-            <img src="icon-g-data.svg" alt="Data">Data
-        </a>
-        <a href="#" class="nav-item" onclick="showMainPage('qa', this)">
-            <img src="icon-g-q&a.svg" alt="Q&A">Q&A
-        </a>
-        <a href="#" class="nav-item" onclick="showMainPage('mypage', this)">
-            <img src="icon-g-mypage.svg" alt="My Page">My Page
-        </a>
+        <a href="#" class="nav-item active" onclick="showMainPage('home', this)"><img src="icon-b-home.svg">Home</a>
+        <a href="#" class="nav-item" onclick="showMainPage('league', this)"><img src="icon-g-league.svg">League</a>
+        <a href="#" class="nav-item" onclick="showMainPage('data', this)"><img src="icon-g-data.svg">Data</a>
+        <a href="#" class="nav-item" onclick="showMainPage('qa', this)"><img src="icon-g-q&a.svg">Q&A</a>
+        <a href="#" class="nav-item" onclick="showMainPage('mypage', this)"><img src="icon-g-mypage.svg">My Page</a>
     </footer>
 
     <script>
+        // --- 設定 ---
+        const GAS_URL = "ここにデプロイしたGASのURLを貼る";
+        let currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
+        let mypageView = currentUser ? 'dashboard' : 'login';
+
+        // --- 共通UI制御 ---
+        function showMainPage(pageId, element) {
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                const type = item.innerText.toLowerCase().trim().replace(' ', '');
+                item.querySelector('img').src = `icon-g-${type === 'q&a' ? 'q&a' : type}.svg`;
+            });
+            element.classList.add('active');
+            const activeType = element.innerText.toLowerCase().trim().replace(' ', '');
+            element.querySelector('img').src = `icon-b-${activeType === 'q&a' ? 'q&a' : activeType}.svg`;
+
+            if(pageId === 'league') moveSlider('league', 0);
+            if(pageId === 'data') moveSlider('data', 0);
+            if(pageId === 'mypage') renderMypage();
+        }
+
         function moveSlider(sectionId, index) {
             const container = document.getElementById(`nav-${sectionId}`);
             if (!container) return;
             const tabs = container.getElementsByClassName('sub-tab');
             const slider = container.querySelector('.slider');
-            
             for (let tab of tabs) tab.classList.remove('active');
             tabs[index].classList.add('active');
-
             const containerPadding = 10;
-            const availableWidth = container.offsetWidth - (containerPadding * 2);
-            const tabWidth = availableWidth / tabs.length;
-            
+            const tabWidth = (container.offsetWidth - 20) / tabs.length;
             slider.style.width = `${tabWidth}px`;
             slider.style.left = `${(tabWidth * index) + containerPadding}px`;
+        }
 
-            const content = document.getElementById(`${sectionId}-content`);
-            if(sectionId === 'data') {
-                const labels = ['ここで8週統計の表', 'ここで8週掲載順の表', 'ここでみんなの予想の表'];
-                content.innerText = labels[index];
-            } else if(sectionId === 'league') {
-                content.innerText = index === 0 ? 'ここでドラッグ＆ドロップの並べ替え' : 'ここで予選参加可否のボタン';
+        // --- マイページ認証ロジック ---
+        async function hashPassword(password) {
+            const msgUint8 = new TextEncoder().encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function renderMypage() {
+            const container = document.getElementById('mypage-container');
+            const badge = document.querySelector('.user-badge');
+            badge.innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん';
+
+            if (mypageView === 'login') {
+                container.innerHTML = `
+                    <div class="auth-form">
+                        <input type="text" id="l-id" placeholder="ユーザーID (U_0001)">
+                        <input type="password" id="l-pw" placeholder="パスワード">
+                        <button class="primary-btn" onclick="login()">ログイン</button>
+                        <div class="auth-links">
+                            <span onclick="mypageView='signup';renderMypage()">新規登録はこちら</span>
+                            <span onclick="mypageView='reset';renderMypage()">忘れた方はこちら</span>
+                        </div>
+                    </div>`;
+            } else if (mypageView === 'signup') {
+                container.innerHTML = `
+                    <div class="notice-box">
+                        <b>ユーザー名について:</b> 8文字以内。動画等で使用されます。<br>
+                        <b>秘密のキーワード:</b> パスワード再設定に使用します。
+                    </div>
+                    <div class="auth-form">
+                        <input type="text" id="s-name" placeholder="ユーザー名">
+                        <div class="input-group"><input type="password" id="s-pw" placeholder="パスワード"><span class="eye-icon" onclick="togglePassword('s-pw')">👁</span></div>
+                        <div class="input-group"><input type="password" id="s-pwc" placeholder="パスワード再確認"><span class="eye-icon" onclick="togglePassword('s-pwc')">👁</span></div>
+                        <input type="text" id="s-key" placeholder="秘密のキーワード">
+                        <button class="primary-btn" onclick="signup()">新規登録</button>
+                        <center onclick="mypageView='login';renderMypage()">戻る</center>
+                    </div>`;
+            } else if (mypageView === 'dashboard') {
+                container.innerHTML = `
+                    <div class="list-item">ユーザー名 <span>${currentUser.name} ＞</span></div>
+                    <div class="list-item">ユーザーID <span>${currentUser.id}</span></div>
+                    <div class="list-item">パスワード <span>******** ＞</span></div>
+                    <div class="list-item">秘密のキーワード <span>＞</span></div>
+                    <div style="padding:20px 10px 5px; font-size:0.9rem;">個人成績</div>
+                    <div class="list-item">過去の成績 <span>＞</span></div>
+                    <button class="logout-btn" onclick="logout()">ログアウト</button>`;
             }
+            // パスワード更新(reset)は signup と同様の構成で作成可能
         }
 
-        function showMainPage(pageId, element) {
-            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-                const type = item.innerText.toLowerCase().trim().replace(' ', '');
-                const fileName = type === 'q&a' ? 'q&a' : type;
-                item.querySelector('img').src = `icon-g-${fileName}.svg`;
+        async function signup() {
+            const name = document.getElementById('s-name').value;
+            const pw = document.getElementById('s-pw').value;
+            const pwc = document.getElementById('s-pwc').value;
+            const key = document.getElementById('s-key').value;
+            if (pw !== pwc) return alert("パスワードが一致しません");
+            const hashed = await hashPassword(pw);
+            
+            // GASへ送信
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "signup", name, pw: hashed, key })
+            }).then(res => res.json()).then(res => {
+                if(res.success) { alert("登録完了! ID: " + res.id); mypageView='login'; renderMypage(); }
             });
-
-            element.classList.add('active');
-            const activeType = element.innerText.toLowerCase().trim().replace(' ', '');
-            const activeFileName = activeType === 'q&a' ? 'q&a' : activeType;
-            element.querySelector('img').src = `icon-b-${activeFileName}.svg`;
-
-            setTimeout(() => {
-                if(pageId === 'league') moveSlider('league', 0);
-                if(pageId === 'data') moveSlider('data', 0);
-            }, 10);
         }
 
-        window.onload = () => {
-            moveSlider('league', 0);
-            moveSlider('data', 0);
-        };
-        
-        window.onresize = () => {
-            const activeLeagueTab = Array.from(document.querySelectorAll('#nav-league .sub-tab')).findIndex(t => t.classList.contains('active'));
-            const activeDataTab = Array.from(document.querySelectorAll('#nav-data .sub-tab')).findIndex(t => t.classList.contains('active'));
-            if(document.getElementById('league').classList.contains('active')) moveSlider('league', activeLeagueTab);
-            if(document.getElementById('data').classList.contains('active')) moveSlider('data', activeDataTab);
-        };
+        async function login() {
+            const id = document.getElementById('l-id').value;
+            const pw = document.getElementById('l-pw').value;
+            const hashed = await hashPassword(pw);
+            // GASへ送信
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "login", id, pw: hashed })
+            }).then(res => res.json()).then(res => {
+                if(res.success) {
+                    currentUser = { id: res.id, name: res.name };
+                    localStorage.setItem('jump_user', JSON.stringify(currentUser));
+                    mypageView = 'dashboard'; renderMypage();
+                } else { alert("失敗"); }
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('jump_user'); currentUser = null; mypageView = 'login'; renderMypage();
+        }
+
+        window.onload = () => { renderMypage(); };
     </script>
 </body>
 </html>
