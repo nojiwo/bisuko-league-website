@@ -34,15 +34,14 @@
         .page-section { display: none; padding-bottom: 80px; }
         .page-section.active { display: block; }
 
-        /* --- サブタブ（スライド・カプセル型） --- */
+        /* サブタブ共通スタイル */
         .sub-nav-container {
             background-color: #333; position: relative; display: flex;
             height: 60px; padding: 0 10px; align-items: center; border-bottom: 2px solid #555;
         }
         .sub-tab {
             flex: 1; color: var(--text-gray); border: none; background: none;
-            font-size: 0.9rem; z-index: 2; cursor: pointer; transition: color 0.3s;
-            display: flex; align-items: center; justify-content: center; height: 100%;
+            font-size: 0.9rem; z-index: 2; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 100%;
         }
         .sub-tab.active { color: white; font-weight: bold; }
         .slider {
@@ -54,35 +53,32 @@
             height: 4px; background-color: var(--main-blue); border-radius: 2px 2px 0 0;
         }
 
-        /* --- Home画面 --- */
-        .card {
-            background: #c9defa; margin: 20px; padding: 40px 20px;
-            border-radius: 40px; border: 2px solid var(--main-blue); text-align: center;
-        }
-        .status-card {
-            border: 1px solid var(--border-gray); background: white;
-            margin: 20px; border-radius: 40px; text-align: center; overflow: hidden;
-        }
-        .status-header { padding: 25px; border-bottom: 1px solid var(--border-gray); }
-        .status-red { color: #ff4d4d; font-size: 1.6rem; font-weight: bold; margin-top: 5px;}
-        .status-footer { padding: 12px; font-size: 0.85rem; color: #333; }
+        /* --- My Page / 認証フォーム --- */
+        .auth-container { padding: 20px; display: flex; flex-direction: column; gap: 15px; text-align: center; }
+        .auth-container input { padding: 12px; border-radius: 8px; border: 1px solid var(--border-gray); font-size: 1rem; width: 100%; box-sizing: border-box; }
+        
+        /* パスワード表示切り替えのスタイル */
+        .pw-toggle-area { text-align: left; font-size: 0.8rem; color: #555; display: flex; align-items: center; gap: 5px; }
+        .pw-toggle-area input[type="checkbox"] { width: auto; }
 
-        /* --- My Page / 認証スタイル --- */
-        .auth-form { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .input-group { position: relative; display: flex; flex-direction: column; }
-        .auth-form input { padding: 12px; border-radius: 8px; border: 1px solid var(--border-gray); font-size: 1rem; }
-        .eye-icon { position: absolute; right: 10px; top: 12px; cursor: pointer; font-size: 1.2rem; }
-        .primary-btn { background: var(--main-blue); color: white; border: none; padding: 14px; border-radius: 30px; font-weight: bold; cursor: pointer; }
-        .auth-links { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--main-blue); cursor: pointer; }
-        .notice-box { background: white; margin: 15px; padding: 15px; border-radius: 10px; font-size: 0.8rem; border-left: 5px solid gold; }
-        .list-item { background: #d9d9d9; border-bottom: 1px solid #aaa; padding: 15px; display: flex; justify-content: space-between; cursor: pointer; }
-        .logout-btn { display: block; width: 200px; margin: 30px auto; padding: 12px; border: 2px solid red; background: white; color: red; border-radius: 30px; font-weight: bold; }
+        .primary-btn { background: var(--main-blue); color: white; border: none; padding: 14px; border-radius: 30px; font-weight: bold; cursor: pointer; width: 100%; }
+        .auth-sub-links { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem; color: var(--main-blue); }
+        .auth-sub-links span { cursor: pointer; text-decoration: underline; }
+        
+        .notice-box { text-align: left; background: white; margin: 15px; padding: 15px; border-radius: 10px; font-size: 0.8rem; border-left: 5px solid gold; line-height: 1.5; }
 
-        /* --- フッターナビ --- */
-        footer {
-            position: fixed; bottom: 0; width: 100%; background-color: var(--footer-bg);
-            border-top: 4px solid var(--main-blue); display: flex; padding: 8px 0;
+        /* --- ログイン後のマイページ --- */
+        .group-label { padding: 15px 15px 5px; font-size: 0.9rem; color: #333; font-weight: bold; }
+        .list-item { background: #d9d9d9; border-bottom: 1px solid #bbb; padding: 18px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .list-item span { color: #666; font-size: 1.1rem; }
+        .logout-btn-container { padding: 30px 20px; text-align: center; }
+        .logout-btn { 
+            display: inline-block; width: 220px; padding: 12px; border: 2px solid red; 
+            background: white; color: red; border-radius: 30px; font-weight: bold; cursor: pointer; 
         }
+
+        /* フッター */
+        footer { position: fixed; bottom: 0; width: 100%; background-color: var(--footer-bg); border-top: 4px solid var(--main-blue); display: flex; padding: 8px 0; }
         .nav-item { flex: 1; text-align: center; text-decoration: none; color: var(--text-gray); font-size: 0.7rem; }
         .nav-item.active { color: var(--main-blue); }
         .nav-item img { width: 30px; height: 30px; display: block; margin: 0 auto 2px; }
@@ -92,13 +88,9 @@
 
     <header><div class="user-badge">読み込み中...</div></header>
 
-    <main id="main-content">
+    <main>
         <section id="home" class="page-section active">
-            <div class="card">ここに表示するお知らせを表示します。</div>
-            <div class="status-card">
-                <div class="status-header"><div>15号</div><div class="status-red">未提出</div></div>
-                <div class="status-footer">第五回びすこリーグ予選：未参加</div>
-            </div>
+            <div style="text-align:center; margin-top:100px;">Homeコンテンツ</div>
         </section>
 
         <section id="league" class="page-section">
@@ -107,7 +99,7 @@
                 <button class="sub-tab" onclick="moveSlider('league', 1)">予選参加希望</button>
                 <span class="slider"></span>
             </div>
-            <div id="league-content" style="text-align:center; margin-top:50px;">並べ替えUI</div>
+            <div id="league-content" style="padding:20px; text-align:center;">League画面</div>
         </section>
 
         <section id="data" class="page-section">
@@ -117,10 +109,12 @@
                 <button class="sub-tab" onclick="moveSlider('data', 2)">みんなの予想</button>
                 <span class="slider"></span>
             </div>
-            <div id="data-content" style="text-align:center; margin-top:50px;">統計データ</div>
+            <div id="data-content" style="padding:20px; text-align:center;">Data画面</div>
         </section>
 
-        <section id="qa" class="page-section"><div style="text-align:center; margin-top:50px;">Q&A</div></section>
+        <section id="qa" class="page-section">
+            <div style="padding:50px; text-align:center;">ここで問い合せ</div>
+        </section>
 
         <section id="mypage" class="page-section">
             <div id="mypage-container"></div>
@@ -137,11 +131,11 @@
 
     <script>
         // --- 設定 ---
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxWbCA7gRrqyTr1Ti_CEeB_9fZHbzrC7TFJlYJLTEa2xBVEtleC2vR1NXdLufw3okJj/exec";
+        const GAS_URL = "ここにデプロイしたURLを貼ってください";
         let currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
         let mypageView = currentUser ? 'dashboard' : 'login';
 
-        // --- 共通UI制御 ---
+        // --- 画面切り替え ---
         function showMainPage(pageId, element) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
@@ -157,6 +151,7 @@
             if(pageId === 'league') moveSlider('league', 0);
             if(pageId === 'data') moveSlider('data', 0);
             if(pageId === 'mypage') renderMypage();
+            updateHeader();
         }
 
         function moveSlider(sectionId, index) {
@@ -164,67 +159,107 @@
             if (!container) return;
             const tabs = container.getElementsByClassName('sub-tab');
             const slider = container.querySelector('.slider');
-            for (let tab of tabs) tab.classList.remove('active');
-            tabs[index].classList.add('active');
-            const containerPadding = 10;
             const tabWidth = (container.offsetWidth - 20) / tabs.length;
             slider.style.width = `${tabWidth}px`;
-            slider.style.left = `${(tabWidth * index) + containerPadding}px`;
+            slider.style.left = `${(tabWidth * index) + 10}px`;
+            for (let t of tabs) t.classList.remove('active');
+            tabs[index].classList.add('active');
         }
 
-        // --- マイページ認証ロジック ---
-        async function hashPassword(password) {
-            const msgUint8 = new TextEncoder().encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+        function updateHeader() {
+            document.querySelector('.user-badge').innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん';
+        }
+
+        // --- My Page 描画エンジン ---
+        function renderMypage() {
+            const container = document.getElementById('mypage-container');
+            
+            // ログイン画面
+            if (mypageView === 'login') {
+                container.innerHTML = `
+                    <div class="auth-container">
+                        <input type="text" id="l-name" placeholder="ユーザー名">
+                        <input type="password" id="l-pw" placeholder="パスワード">
+                        <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('l-pw')"> パスワードを表示</div>
+                        <button class="primary-btn" onclick="login()">ログイン</button>
+                        <div class="auth-sub-links">
+                            <span onclick="mypageView='signup';renderMypage()">新規登録はこちら</span>
+                            <span onclick="mypageView='reset';renderMypage()">パスワードを忘れた方はこちら</span>
+                        </div>
+                    </div>`;
+            } 
+            // 新規登録画面
+            else if (mypageView === 'signup') {
+                container.innerHTML = `
+                    <div class="notice-box">
+                        <b>ユーザー名について:</b><br>ユーザー名はメールアドレスではありません。動画内で使用される名前を8文字以内で設定してください。<br><br>
+                        <b>秘密のキーワードについて:</b><br>パスワード再設定時に使用します。好きな作品名などを設定してください。
+                    </div>
+                    <div class="auth-container">
+                        <input type="text" id="s-name" placeholder="ユーザー名 (8文字以内)">
+                        <input type="password" id="s-pw" placeholder="パスワード">
+                        <input type="password" id="s-pwc" placeholder="パスワード再確認">
+                        <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('s-pw');togglePw('s-pwc')"> パスワードを表示</div>
+                        <input type="text" id="s-key" placeholder="秘密のキーワード">
+                        <button class="primary-btn" onclick="signup()">新規登録</button>
+                        <div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div>
+                    </div>`;
+            }
+            // パスワード再設定画面
+            else if (mypageView === 'reset') {
+                container.innerHTML = `
+                    <div class="auth-container">
+                        <input type="text" id="r-name" placeholder="ユーザー名">
+                        <input type="text" id="r-key" placeholder="秘密のキーワード">
+                        <input type="password" id="r-pw" placeholder="新パスワード">
+                        <input type="password" id="r-pwc" placeholder="新パスワード再確認">
+                        <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('r-pw');togglePw('r-pwc')"> パスワードを表示</div>
+                        <button class="primary-btn" onclick="resetPw()">パスワード更新</button>
+                        <div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div>
+                    </div>`;
+            }
+            // ログイン後のメイン (イメージ画像に基づいたデザイン)
+            else if (mypageView === 'dashboard') {
+                container.innerHTML = `
+                    <div class="group-label">ユーザー情報</div>
+                    <div class="list-item" onclick="alert('変更画面へ')">ユーザー名 <span>＞</span></div>
+                    <div class="list-item" onclick="alert('変更画面へ')">ユーザーID <span>＞</span></div>
+                    <div class="list-item" onclick="alert('変更画面へ')">パスワード <span>＞</span></div>
+                    <div class="list-item" onclick="alert('変更画面へ')">秘密のキーワード <span>＞</span></div>
+                    
+                    <div class="group-label">個人成績</div>
+                    <div class="list-item" onclick="alert('成績画面へ')">過去の成績 <span>＞</span></div>
+                    
+                    <div class="logout-btn-container">
+                        <button class="logout-btn" onclick="logout()">ログアウト</button>
+                    </div>`;
+            }
+        }
+
+        // パスワード表示切り替え（ラジオボタン/チェックボックス）
+        function togglePw(id) {
+            const el = document.getElementById(id);
+            el.type = el.type === 'password' ? 'text' : 'password';
+        }
+
+        // --- 通信・ロジック ---
+        async function hash(pw) {
+            const msg = new TextEncoder().encode(pw);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msg);
             return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        function togglePassword(id) {
-            const input = document.getElementById(id);
-            input.type = input.type === 'password' ? 'text' : 'password';
-        }
-
-        function renderMypage() {
-            const container = document.getElementById('mypage-container');
-            const badge = document.querySelector('.user-badge');
-            badge.innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん';
-
-            if (mypageView === 'login') {
-                container.innerHTML = `
-                    <div class="auth-form">
-                        <input type="text" id="l-id" placeholder="ユーザーID (U_0001)">
-                        <input type="password" id="l-pw" placeholder="パスワード">
-                        <button class="primary-btn" onclick="login()">ログイン</button>
-                        <div class="auth-links">
-                            <span onclick="mypageView='signup';renderMypage()">新規登録はこちら</span>
-                            <span onclick="mypageView='reset';renderMypage()">忘れた方はこちら</span>
-                        </div>
-                    </div>`;
-            } else if (mypageView === 'signup') {
-                container.innerHTML = `
-                    <div class="notice-box">
-                        <b>ユーザー名について:</b> 8文字以内。動画等で使用されます。<br>
-                        <b>秘密のキーワード:</b> パスワード再設定に使用します。
-                    </div>
-                    <div class="auth-form">
-                        <input type="text" id="s-name" placeholder="ユーザー名">
-                        <div class="input-group"><input type="password" id="s-pw" placeholder="パスワード"><span class="eye-icon" onclick="togglePassword('s-pw')">👁</span></div>
-                        <div class="input-group"><input type="password" id="s-pwc" placeholder="パスワード再確認"><span class="eye-icon" onclick="togglePassword('s-pwc')">👁</span></div>
-                        <input type="text" id="s-key" placeholder="秘密のキーワード">
-                        <button class="primary-btn" onclick="signup()">新規登録</button>
-                        <center onclick="mypageView='login';renderMypage()">戻る</center>
-                    </div>`;
-            } else if (mypageView === 'dashboard') {
-                container.innerHTML = `
-                    <div class="list-item">ユーザー名 <span>${currentUser.name} ＞</span></div>
-                    <div class="list-item">ユーザーID <span>${currentUser.id}</span></div>
-                    <div class="list-item">パスワード <span>******** ＞</span></div>
-                    <div class="list-item">秘密のキーワード <span>＞</span></div>
-                    <div style="padding:20px 10px 5px; font-size:0.9rem;">個人成績</div>
-                    <div class="list-item">過去の成績 <span>＞</span></div>
-                    <button class="logout-btn" onclick="logout()">ログアウト</button>`;
-            }
-            // パスワード更新(reset)は signup と同様の構成で作成可能
+        async function login() {
+            const name = document.getElementById('l-name').value;
+            const pw = await hash(document.getElementById('l-pw').value);
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name, pw }) })
+            .then(r => r.json()).then(res => {
+                if(res.success) {
+                    currentUser = { name: res.name, id: res.id };
+                    localStorage.setItem('jump_user', JSON.stringify(currentUser));
+                    mypageView = 'dashboard'; renderMypage(); updateHeader();
+                } else { alert("ログイン失敗。ユーザー名またはパスワードが違います。"); }
+            });
         }
 
         async function signup() {
@@ -232,40 +267,34 @@
             const pw = document.getElementById('s-pw').value;
             const pwc = document.getElementById('s-pwc').value;
             const key = document.getElementById('s-key').value;
-            if (pw !== pwc) return alert("パスワードが一致しません");
-            const hashed = await hashPassword(pw);
-            
-            // GASへ送信
-            fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "signup", name, pw: hashed, key })
-            }).then(res => res.json()).then(res => {
-                if(res.success) { alert("登録完了! ID: " + res.id); mypageView='login'; renderMypage(); }
+            if(pw !== pwc) return alert("パスワードが一致しません");
+            const hashed = await hash(pw);
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "signup", name, pw: hashed, key }) })
+            .then(r => r.json()).then(res => {
+                if(res.success) { alert("登録完了! ID: " + res.id); mypageView = 'login'; renderMypage(); }
+                else { alert("エラー: " + res.message); }
             });
         }
 
-        async function login() {
-            const id = document.getElementById('l-id').value;
-            const pw = document.getElementById('l-pw').value;
-            const hashed = await hashPassword(pw);
-            // GASへ送信
-            fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "login", id, pw: hashed })
-            }).then(res => res.json()).then(res => {
-                if(res.success) {
-                    currentUser = { id: res.id, name: res.name };
-                    localStorage.setItem('jump_user', JSON.stringify(currentUser));
-                    mypageView = 'dashboard'; renderMypage();
-                } else { alert("失敗"); }
+        async function resetPw() {
+            const name = document.getElementById('r-name').value;
+            const key = document.getElementById('r-key').value;
+            const pw = document.getElementById('r-pw').value;
+            const pwc = document.getElementById('r-pwc').value;
+            if(pw !== pwc) return alert("パスワードが一致しません");
+            const hashed = await hash(pw);
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "reset", name, key, pw: hashed }) })
+            .then(r => r.json()).then(res => {
+                if(res.success) { alert("更新完了！"); mypageView = 'login'; renderMypage(); }
+                else { alert("秘密のキーワードが間違っています"); }
             });
         }
 
         function logout() {
-            localStorage.removeItem('jump_user'); currentUser = null; mypageView = 'login'; renderMypage();
+            localStorage.removeItem('jump_user'); currentUser = null; mypageView = 'login'; renderMypage(); updateHeader();
         }
 
-        window.onload = () => { renderMypage(); };
+        window.onload = () => { renderMypage(); updateHeader(); };
     </script>
 </body>
 </html>
