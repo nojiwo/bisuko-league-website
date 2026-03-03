@@ -149,7 +149,7 @@
     </footer>
 
     <script>
-        const GAS_URL = "ここにデプロイ後のURLを貼る";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxWbCA7gRrqyTr1Ti_CEeB_9fZHbzrC7TFJlYJLTEa2xBVEtleC2vR1NXdLufw3okJj/exec";
         let currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
         let mypageView = currentUser ? 'dashboard' : 'login';
 
@@ -312,14 +312,14 @@
             let title = "", currentLabel = "", inputHtml = "";
             if (type === 'pass') {
                 title = "パスワードの変更";
-                currentLabel = "現在の設定: <b>********</b>";
+                currentLabel = `現在のハッシュ値: <b style="word-break:break-all; font-size:0.7rem;">${currentUser.pw}</b>`;
                 inputHtml = `
                     <input type="password" id="new-val" placeholder="新しいパスワード">
                     <input type="password" id="new-val-confirm" placeholder="パスワード再確認">
                     <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('new-val');togglePw('new-val-confirm')"> パスワードを表示</div>`;
             } else if (type === 'key') {
                 title = "秘密のキーワードの変更";
-                currentLabel = "現在のキーワードは非表示です";
+                currentLabel = `現在のキーワード: <b>${currentUser.key}</b>`;
                 inputHtml = `<input type="text" id="new-val" placeholder="新しい秘密のキーワード">`;
             }
             container.innerHTML = `
@@ -366,7 +366,7 @@
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name, pw }) })
             .then(r => r.json()).then(res => {
                 if(res.success) {
-                    currentUser = { name: res.name, id: res.id };
+                    currentUser = { name: res.name, id: res.id, pw: pw, key: res.key };
                     localStorage.setItem('jump_user', JSON.stringify(currentUser));
                     mypageView = 'dashboard'; renderMypage(); updateHeader(); initHome();
                 } else { alert("失敗しました"); }
@@ -418,6 +418,8 @@
             .then(r => r.json()).then(res => {
                 if(res.success) {
                     alert("更新しました");
+                    if(type === 'pass') currentUser.pw = payload.value;
+                    if(type === 'key') currentUser.key = val;
                     localStorage.setItem('jump_user', JSON.stringify(currentUser));
                     mypageView = 'dashboard'; renderMypage(); updateHeader();
                 } else { alert("失敗しました"); }
