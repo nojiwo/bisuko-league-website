@@ -17,174 +17,120 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            font-family: sans-serif;
             background-color: var(--bg-gray);
-            color: #333;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            overflow: hidden;
         }
 
-        /* ヘッダーエリア */
+        /* ヘッダー */
         header {
             background-color: var(--header-blue);
             padding: 20px 0;
             text-align: center;
+            flex-shrink: 0;
         }
-
         .user-badge {
             display: inline-block;
             background-color: #1a3c5e;
             color: white;
-            padding: 10px 40px;
+            padding: 8px 35px;
             border-radius: 30px;
             border: 2px solid white;
-            font-size: 1.2rem;
         }
 
-        /* コンテンツエリア */
+        /* メインコンテンツ */
         main {
             flex: 1;
             overflow-y: auto;
-            padding-bottom: 80px; /* フッター分 */
+            position: relative;
         }
+        .page-section { display: none; padding-bottom: 80px; }
+        .page-section.active { display: block; }
 
-        .page-section {
-            display: none;
-        }
-
-        .page-section.active {
-            display: block;
-        }
-
-        /* サブナビゲーション（Data, League等） */
-        .sub-nav {
+        /* --- サブタブ（スライド機能付き） --- */
+        .sub-nav-container {
             background-color: #333;
+            position: relative;
             display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
+            height: 50px;
+            border-bottom: 3px solid #666; /* 下線のベースライン */
         }
-
-        .sub-nav button {
-            background: none;
-            border: none;
+        .sub-tab {
+            flex: 1;
             color: var(--text-gray);
-            font-size: 1rem;
-            padding: 5px 15px;
+            border: none;
+            background: none;
+            font-size: 0.9rem;
+            z-index: 2;
             cursor: pointer;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        .sub-tab.active { color: white; }
 
-        .sub-nav button.active {
+        /* スライドする青い背景/下線 */
+        .slider {
+            position: absolute;
+            top: 10px; /* 上下の余白 */
+            bottom: -3px; /* border-bottomに重ねる */
             background-color: var(--main-blue);
-            color: white;
-            border-radius: 15px;
+            border-radius: 15px 15px 0 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
         }
 
-        /* Home画面のカード */
+        /* --- Home画面 --- */
         .card {
-            background: white;
+            background: #c9defa;
             margin: 20px;
-            padding: 20px;
+            padding: 40px 20px;
             border-radius: 40px;
             border: 2px solid var(--main-blue);
             text-align: center;
-            min-height: 150px;
         }
-
         .status-card {
             border: 1px solid var(--border-gray);
             background: white;
             margin: 20px;
             border-radius: 40px;
+            text-align: center; /* 左揃えから中央揃えに修正 */
             overflow: hidden;
         }
+        .status-header { padding: 25px; border-bottom: 1px solid var(--border-gray); }
+        .status-red { color: #ff4d4d; font-size: 1.6rem; font-weight: bold; margin-top: 5px;}
+        .status-footer { padding: 12px; font-size: 0.85rem; color: #333; }
 
-        .status-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border-gray);
-        }
-
-        .status-footer {
-            padding: 10px;
-            font-size: 0.9rem;
-        }
-
-        .status-red {
-            color: #ff4d4d;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        /* My Page リスト */
-        .list-group {
-            margin-top: 10px;
-        }
-
-        .list-label {
-            padding-left: 10px;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
+        /* --- My Page --- */
         .list-item {
             background: #d9d9d9;
-            border-bottom: 1px solid #999;
+            border-bottom: 1px solid #aaa;
             padding: 15px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
         }
 
-        .logout-btn {
-            display: block;
-            width: 200px;
-            margin: 30px auto;
-            padding: 15px;
-            border: 2px solid red;
-            background: white;
-            color: red;
-            border-radius: 30px;
-            text-align: center;
-            font-weight: bold;
-            text-decoration: none;
-        }
-
-        /* 下部ナビゲーション */
+        /* --- フッターナビ --- */
         footer {
             position: fixed;
-            bottom: 0;
-            width: 100%;
+            bottom: 0; width: 100%;
             background-color: var(--footer-bg);
             border-top: 4px solid var(--main-blue);
             display: flex;
-            justify-content: space-around;
             padding: 8px 0;
         }
-
         .nav-item {
-            text-align: center;
-            text-decoration: none;
-            color: var(--text-gray);
-            font-size: 0.7rem;
-            flex: 1;
+            flex: 1; text-align: center; text-decoration: none;
+            color: var(--text-gray); font-size: 0.7rem;
         }
+        .nav-item.active { color: var(--main-blue); }
+        .nav-item img { width: 30px; height: 30px; display: block; margin: 0 auto 2px; }
 
-        .nav-item.active {
-            color: var(--main-blue);
-        }
-
-        .nav-item img {
-            width: 35px;
-            height: 35px;
-            display: block;
-            margin: 0 auto 2px;
-        }
-
-        .placeholder-text {
-            text-align: center;
-            margin-top: 100px;
-            font-size: 1.2rem;
-        }
+        .placeholder-text { text-align: center; margin-top: 50px; color: #666; }
     </style>
 </head>
 <body>
@@ -193,37 +139,35 @@
         <div class="user-badge">のじを。さん</div>
     </header>
 
-    <main id="content">
+    <main>
         <section id="home" class="page-section active">
-            <div class="card" style="background-color: #c9defa;">
-                ここに表示するお知らせを表示します。
-            </div>
+            <div class="card">ここに表示するお知らせを表示します。</div>
             <div class="status-card">
                 <div class="status-header">
                     <div>15号</div>
                     <div class="status-red">未提出</div>
                 </div>
-                <div class="status-footer">
-                    第五回びすこリーグ予選：未参加
-                </div>
+                <div class="status-footer">第五回びすこリーグ予選：未参加</div>
             </div>
         </section>
 
         <section id="league" class="page-section">
-            <div class="sub-nav">
-                <button>予想提出</button>
-                <button class="active">予想提出</button>
+            <div class="sub-nav-container" id="nav-league">
+                <button class="sub-tab" onclick="moveSlider('league', 0)">予想提出</button>
+                <button class="sub-tab active" onclick="moveSlider('league', 1)">予想提出</button>
+                <span class="slider"></span>
             </div>
-            <div class="placeholder-text">ここでドラッグ＆ドロップの<br>並べ替え選択肢</div>
+            <div id="league-content" class="placeholder-text">ここでドラッグ＆ドロップの並べ替え</div>
         </section>
 
         <section id="data" class="page-section">
-            <div class="sub-nav">
-                <button class="active">8週統計</button>
-                <button>8週掲載順</button>
-                <button>みんなの予想</button>
+            <div class="sub-nav-container" id="nav-data">
+                <button class="sub-tab active" onclick="moveSlider('data', 0)">8週統計</button>
+                <button class="sub-tab" onclick="moveSlider('data', 1)">8週掲載順</button>
+                <button class="sub-tab" onclick="moveSlider('data', 2)">みんなの予想</button>
+                <span class="slider"></span>
             </div>
-            <div class="placeholder-text">ここで8週統計の表</div>
+            <div id="data-content" class="placeholder-text">ここで8週統計の表</div>
         </section>
 
         <section id="qa" class="page-section">
@@ -231,69 +175,90 @@
         </section>
 
         <section id="mypage" class="page-section">
-            <div class="list-group">
-                <div class="list-label">ユーザー情報</div>
-                <div class="list-item">ユーザー名 <span>＞</span></div>
-                <div class="list-item">ユーザーID <span>＞</span></div>
-                <div class="list-item">パスワード <span>＞</span></div>
-                <div class="list-item">秘密のキーワード <span>＞</span></div>
-            </div>
-            <div class="list-group" style="margin-top:20px;">
-                <div class="list-label">個人成績</div>
-                <div class="list-item">過去の成績 <span>＞</span></div>
-            </div>
-            <a href="#" class="logout-btn">ログアウト</a>
+            <div style="padding: 15px 10px 5px; font-size: 0.9rem; color:#666;">ユーザー情報</div>
+            <div class="list-item">ユーザー名 <span>＞</span></div>
+            <div class="list-item">ユーザーID <span>＞</span></div>
+            <div class="list-item">パスワード <span>＞</span></div>
+            <div class="list-item">秘密のキーワード <span>＞</span></div>
+            <div style="padding: 20px 10px 5px; font-size: 0.9rem; color:#666;">個人成績</div>
+            <div class="list-item">過去の成績 <span>＞</span></div>
+            <button style="display:block; width:220px; margin:30px auto; padding:12px; border:2px solid red; border-radius:30px; color:red; background:white; font-weight:bold;">ログアウト</button>
         </section>
     </main>
 
     <footer>
-        <a href="#" class="nav-item active" onclick="showPage('home')">
-            <img src="icon-b-home.svg" alt="Home">
-            Home
+        <a href="#" class="nav-item active" onclick="showMainPage('home', this)">
+            <img src="icon-b-home.svg" alt="Home">Home
         </a>
-        <a href="#" class="nav-item" onclick="showPage('league')">
-            <img src="icon-g-league.svg" alt="League">
-            League
+        <a href="#" class="nav-item" onclick="showMainPage('league', this)">
+            <img src="icon-g-league.svg" alt="League">League
         </a>
-        <a href="#" class="nav-item" onclick="showPage('data')">
-            <img src="icon-g-data.svg" alt="Data">
-            Data
+        <a href="#" class="nav-item" onclick="showMainPage('data', this)">
+            <img src="icon-g-data.svg" alt="Data">Data
         </a>
-        <a href="#" class="nav-item" onclick="showPage('qa')">
-            <img src="icon-g-q&a.svg" alt="Q&A">
-            Q&A
+        <a href="#" class="nav-item" onclick="showMainPage('qa', this)">
+            <img src="icon-g-q&a.svg" alt="Q&A">Q&A
         </a>
-        <a href="#" class="nav-item" onclick="showPage('mypage')">
-            <img src="icon-g-mypage.svg" alt="My Page">
-            My Page
+        <a href="#" class="nav-item" onclick="showMainPage('mypage', this)">
+            <img src="icon-g-mypage.svg" alt="My Page">My Page
         </a>
     </footer>
 
     <script>
-        // 簡易的なタブ切り替えロジック
-        function showPage(pageId) {
-            // 全セクションを非表示
-            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-            // 指定セクションを表示
+        // サブタブのスライダー位置を計算・移動
+        function moveSlider(sectionId, index) {
+            const container = document.getElementById(`nav-${sectionId}`);
+            const tabs = container.getElementsByClassName('sub-tab');
+            const slider = container.querySelector('.slider');
+            
+            // 全タブのactive解除
+            for (let tab of tabs) tab.classList.remove('active');
+            // 選択タブをactive
+            tabs[index].classList.add('active');
+
+            // スライダーの位置と幅を計算
+            const tabWidth = 100 / tabs.length;
+            slider.style.width = `${tabWidth}%`;
+            slider.style.left = `${tabWidth * index}%`;
+
+            // コンテンツの書き換え（サンプル）
+            const content = document.getElementById(`${sectionId}-content`);
+            if(sectionId === 'data') {
+                const labels = ['ここで8週統計の表', 'ここで8週掲載順の表', 'ここでみんなの予想の表'];
+                content.innerText = labels[index];
+            } else if(sectionId === 'league') {
+                content.innerText = index === 0 ? 'ここで予選参加可否のボタン' : 'ここでドラッグ＆ドロップの並べ替え';
+            }
+        }
+
+        // メインページの切り替え
+        function showMainPage(pageId, element) {
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
 
-            // ナビゲーションのアイコン色切り替え
+            // アイコン色切り替え
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
-                const img = item.querySelector('img');
                 const type = item.innerText.toLowerCase().trim().replace(' ', '');
-                // q&a の特殊処理
                 const fileName = type === 'q&a' ? 'q&a' : type;
-                img.src = `icon-g-${fileName}.svg`;
+                item.querySelector('img').src = `icon-g-${fileName}.svg`;
             });
 
-            // クリックされたアイテムをアクティブ化
-            const activeItem = event.currentTarget;
-            activeItem.classList.add('active');
-            const activeType = activeItem.innerText.toLowerCase().trim().replace(' ', '');
+            element.classList.add('active');
+            const activeType = element.innerText.toLowerCase().trim().replace(' ', '');
             const activeFileName = activeType === 'q&a' ? 'q&a' : activeType;
-            activeItem.querySelector('img').src = `icon-b-${activeFileName}.svg`;
+            element.querySelector('img').src = `icon-b-${activeFileName}.svg`;
+
+            // ページ表示時にスライダーを初期化（LeagueとDataのみ）
+            if(pageId === 'league') moveSlider('league', 1);
+            if(pageId === 'data') moveSlider('data', 0);
         }
+
+        // 初期化
+        window.onload = () => {
+            moveSlider('league', 1);
+            moveSlider('data', 0);
+        };
     </script>
 </body>
 </html>
