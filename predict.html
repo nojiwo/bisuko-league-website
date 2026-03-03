@@ -22,19 +22,17 @@
             height: 100vh; overflow: hidden;
         }
 
-        /* ヘッダー */
         header { background-color: var(--header-blue); padding: 20px 0; text-align: center; flex-shrink: 0; }
         .user-badge {
             display: inline-block; background-color: #1a3c5e; color: white;
             padding: 8px 35px; border-radius: 30px; border: 2px solid white;
         }
 
-        /* メイン */
         main { flex: 1; overflow-y: auto; position: relative; }
         .page-section { display: none; padding-bottom: 80px; }
         .page-section.active { display: block; }
 
-        /* サブタブ共通スタイル */
+        /* --- サブタブ共通 --- */
         .sub-nav-container {
             background-color: #333; position: relative; display: flex;
             height: 60px; padding: 0 10px; align-items: center; border-bottom: 2px solid #555;
@@ -53,20 +51,36 @@
             height: 4px; background-color: var(--main-blue); border-radius: 2px 2px 0 0;
         }
 
-        /* --- My Page / 認証フォーム --- */
+        /* --- 認証フォーム --- */
         .auth-container { padding: 20px; display: flex; flex-direction: column; gap: 15px; text-align: center; }
         .auth-container input { padding: 12px; border-radius: 8px; border: 1px solid var(--border-gray); font-size: 1rem; width: 100%; box-sizing: border-box; }
         
         .pw-toggle-area { text-align: left; font-size: 0.8rem; color: #555; display: flex; align-items: center; gap: 8px; margin-top: -5px; }
         .pw-toggle-area input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; }
 
-        .primary-btn { background: var(--main-blue); color: white; border: none; padding: 14px; border-radius: 30px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; }
+        .primary-btn { 
+            background: var(--main-blue); color: white; border: none; padding: 14px; 
+            border-radius: 30px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .primary-btn:disabled { background: #888; cursor: not-allowed; }
+
+        /* ローディングアニメーション */
+        .spinner {
+            width: 18px; height: 18px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         .auth-sub-links { margin-top: 15px; display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem; color: var(--main-blue); }
         .auth-sub-links span { cursor: pointer; text-decoration: underline; }
-        
         .notice-box { text-align: left; background: white; margin: 15px; padding: 15px; border-radius: 10px; font-size: 0.8rem; border-left: 5px solid gold; line-height: 1.5; }
 
-        /* --- ログイン後のマイページ --- */
+        /* --- ログイン後 --- */
         .group-label { padding: 15px 15px 5px; font-size: 0.9rem; color: #333; font-weight: bold; }
         .list-item { background: #d9d9d9; border-bottom: 1px solid #bbb; padding: 18px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .list-item span { color: #666; font-size: 1.2rem; font-weight: bold; }
@@ -76,7 +90,6 @@
             background: white; color: red; border-radius: 30px; font-weight: bold; cursor: pointer; 
         }
 
-        /* フッター */
         footer { position: fixed; bottom: 0; width: 100%; background-color: var(--footer-bg); border-top: 4px solid var(--main-blue); display: flex; padding: 8px 0; }
         .nav-item { flex: 1; text-align: center; text-decoration: none; color: var(--text-gray); font-size: 0.7rem; }
         .nav-item.active { color: var(--main-blue); }
@@ -88,19 +101,15 @@
     <header><div class="user-badge">ゲストさん</div></header>
 
     <main>
-        <section id="home" class="page-section active">
-            <div style="text-align:center; margin-top:100px;">Homeコンテンツ</div>
-        </section>
-
+        <section id="home" class="page-section active"><div style="text-align:center; margin-top:100px;">Home</div></section>
         <section id="league" class="page-section">
             <div class="sub-nav-container" id="nav-league">
                 <button class="sub-tab active" onclick="moveSlider('league', 0)">予想提出</button>
                 <button class="sub-tab" onclick="moveSlider('league', 1)">予選参加希望</button>
                 <span class="slider"></span>
             </div>
-            <div id="league-content" style="padding:20px; text-align:center;">League画面</div>
+            <div id="league-content" style="padding:20px; text-align:center;">League</div>
         </section>
-
         <section id="data" class="page-section">
             <div class="sub-nav-container" id="nav-data">
                 <button class="sub-tab active" onclick="moveSlider('data', 0)">8週統計</button>
@@ -108,16 +117,10 @@
                 <button class="sub-tab" onclick="moveSlider('data', 2)">みんなの予想</button>
                 <span class="slider"></span>
             </div>
-            <div id="data-content" style="padding:20px; text-align:center;">Data画面</div>
+            <div id="data-content" style="padding:20px; text-align:center;">Data</div>
         </section>
-
-        <section id="qa" class="page-section">
-            <div style="padding:50px; text-align:center;">ここで問い合せ</div>
-        </section>
-
-        <section id="mypage" class="page-section">
-            <div id="mypage-container"></div>
-        </section>
+        <section id="qa" class="page-section"><div style="padding:50px; text-align:center;">問い合せ</div></section>
+        <section id="mypage" class="page-section"><div id="mypage-container"></div></section>
     </main>
 
     <footer>
@@ -129,10 +132,7 @@
     </footer>
 
     <script>
-        // --- 設定 ---
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxWbCA7gRrqyTr1Ti_CEeB_9fZHbzrC7TFJlYJLTEa2xBVEtleC2vR1NXdLufw3okJj/exec";
-        
-        // 初期状態をログアウト状態（null）に設定
         let currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
         let mypageView = currentUser ? 'dashboard' : 'login';
 
@@ -147,7 +147,6 @@
             element.classList.add('active');
             const activeType = element.innerText.toLowerCase().trim().replace(' ', '');
             element.querySelector('img').src = `icon-b-${activeType === 'q&a' ? 'q&a' : activeType}.svg`;
-
             if(pageId === 'league') moveSlider('league', 0);
             if(pageId === 'data') moveSlider('data', 0);
             if(pageId === 'mypage') renderMypage();
@@ -172,37 +171,38 @@
 
         function renderMypage() {
             const container = document.getElementById('mypage-container');
-            
             if (mypageView === 'login') {
                 container.innerHTML = `
                     <div class="auth-container">
                         <input type="text" id="l-name" placeholder="ユーザー名">
                         <input type="password" id="l-pw" placeholder="パスワード">
                         <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('l-pw')"> パスワードを表示</div>
-                        <button class="primary-btn" onclick="login()">ログイン</button>
+                        <button class="primary-btn" id="btn-login" onclick="login()">
+                            <div class="spinner"></div> <span>ログイン</span>
+                        </button>
                         <div class="auth-sub-links">
                             <span onclick="mypageView='signup';renderMypage()">新規登録はこちら</span>
                             <span onclick="mypageView='reset';renderMypage()">パスワードを忘れた方はこちら</span>
                         </div>
                     </div>`;
-            } 
-            else if (mypageView === 'signup') {
+            } else if (mypageView === 'signup') {
                 container.innerHTML = `
                     <div class="notice-box">
-                        <b>ユーザー名について:</b><br>ユーザー名はメールアドレスではありません。動画内で使用される名前を8文字以内で設定してください。<br><br>
-                        <b>秘密のキーワードについて:</b><br>パスワード再設定時に使用します。好きな作品名などを設定してください。
+                        <b>ユーザー名について:</b><br>8文字以内で設定してください。<br><br>
+                        <b>秘密のキーワードについて:</b><br>パスワード再設定時に使用します。
                     </div>
                     <div class="auth-container">
-                        <input type="text" id="s-name" placeholder="ユーザー名 (8文字以内)">
+                        <input type="text" id="s-name" placeholder="ユーザー名">
                         <input type="password" id="s-pw" placeholder="パスワード">
                         <input type="password" id="s-pwc" placeholder="パスワード再確認">
                         <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('s-pw');togglePw('s-pwc')"> パスワードを表示</div>
                         <input type="text" id="s-key" placeholder="秘密のキーワード">
-                        <button class="primary-btn" onclick="signup()">新規登録</button>
+                        <button class="primary-btn" id="btn-signup" onclick="signup()">
+                            <div class="spinner"></div> <span>新規登録</span>
+                        </button>
                         <div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div>
                     </div>`;
-            }
-            else if (mypageView === 'reset') {
+            } else if (mypageView === 'reset') {
                 container.innerHTML = `
                     <div class="auth-container">
                         <input type="text" id="r-name" placeholder="ユーザー名">
@@ -210,24 +210,21 @@
                         <input type="password" id="r-pw" placeholder="新パスワード">
                         <input type="password" id="r-pwc" placeholder="新パスワード再確認">
                         <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('r-pw');togglePw('r-pwc')"> パスワードを表示</div>
-                        <button class="primary-btn" onclick="resetPw()">パスワード更新</button>
+                        <button class="primary-btn" id="btn-reset" onclick="resetPw()">
+                            <div class="spinner"></div> <span>パスワード更新</span>
+                        </button>
                         <div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div>
                     </div>`;
-            }
-            else if (mypageView === 'dashboard') {
+            } else if (mypageView === 'dashboard') {
                 container.innerHTML = `
                     <div class="group-label">ユーザー情報</div>
-                    <div class="list-item" onclick="alert('変更画面へ')">ユーザー名 <span>＞</span></div>
-                    <div class="list-item" onclick="alert('変更画面へ')">ユーザーID <span>＞</span></div>
-                    <div class="list-item" onclick="alert('変更画面へ')">パスワード <span>＞</span></div>
-                    <div class="list-item" onclick="alert('変更画面へ')">秘密のキーワード <span>＞</span></div>
-                    
+                    <div class="list-item">ユーザー名 <span>＞</span></div>
+                    <div class="list-item">ユーザーID <span>＞</span></div>
+                    <div class="list-item">パスワード <span>＞</span></div>
+                    <div class="list-item">秘密のキーワード <span>＞</span></div>
                     <div class="group-label">個人成績</div>
-                    <div class="list-item" onclick="alert('成績画面へ')">過去の成績 <span>＞</span></div>
-                    
-                    <div class="logout-btn-container">
-                        <button class="logout-btn" onclick="logout()">ログアウト</button>
-                    </div>`;
+                    <div class="list-item">過去の成績 <span>＞</span></div>
+                    <div class="logout-btn-container"><button class="logout-btn" onclick="logout()">ログアウト</button></div>`;
             }
         }
 
@@ -236,15 +233,38 @@
             if(el) el.type = el.type === 'password' ? 'text' : 'password';
         }
 
+        // --- SHA-256 ハッシュ化 ---
         async function hash(pw) {
             const msg = new TextEncoder().encode(pw);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msg);
             return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
+        // --- 通信中の表示制御 ---
+        function setLoading(btnId, isLoading) {
+            const btn = document.getElementById(btnId);
+            if(!btn) return;
+            const spinner = btn.querySelector('.spinner');
+            const text = btn.querySelector('span');
+            if(isLoading) {
+                btn.disabled = true;
+                spinner.style.display = 'block';
+                text.style.opacity = '0.5';
+            } else {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                text.style.opacity = '1';
+            }
+        }
+
         async function login() {
             const name = document.getElementById('l-name').value;
-            const pw = await hash(document.getElementById('l-pw').value);
+            const passInput = document.getElementById('l-pw').value;
+            if(!name || !passInput) return alert("ユーザー名とパスワードを入力してください");
+            
+            setLoading('btn-login', true);
+            const pw = await hash(passInput);
+            
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name, pw }) })
             .then(r => r.json()).then(res => {
                 if(res.success) {
@@ -252,36 +272,41 @@
                     localStorage.setItem('jump_user', JSON.stringify(currentUser));
                     mypageView = 'dashboard'; renderMypage(); updateHeader();
                 } else { alert("ユーザー名またはパスワードが違います"); }
-            });
+            }).catch(e => alert("通信エラーが発生しました"))
+            .finally(() => setLoading('btn-login', false));
         }
 
         async function signup() {
             const name = document.getElementById('s-name').value;
-            const pw = document.getElementById('s-pw').value;
-            const pwc = document.getElementById('s-pwc').value;
+            const pwRaw = document.getElementById('s-pw').value;
+            const pwcRaw = document.getElementById('s-pwc').value;
             const key = document.getElementById('s-key').value;
-            if(!name || !pw || !key) return alert("すべて入力してください");
-            if(pw !== pwc) return alert("パスワードが一致しません");
-            const hashed = await hash(pw);
+            if(!name || !pwRaw || !key) return alert("すべて入力してください");
+            if(pwRaw !== pwcRaw) return alert("パスワードが一致しません");
+            
+            setLoading('btn-signup', true);
+            const hashed = await hash(pwRaw);
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "signup", name, pw: hashed, key }) })
             .then(r => r.json()).then(res => {
                 if(res.success) { alert("登録完了! ID: " + res.id); mypageView = 'login'; renderMypage(); }
                 else { alert("エラー: " + res.message); }
-            });
+            }).finally(() => setLoading('btn-signup', false));
         }
 
         async function resetPw() {
             const name = document.getElementById('r-name').value;
             const key = document.getElementById('r-key').value;
-            const pw = document.getElementById('r-pw').value;
-            const pwc = document.getElementById('r-pwc').value;
-            if(pw !== pwc) return alert("パスワードが一致しません");
-            const hashed = await hash(pw);
+            const pwRaw = document.getElementById('r-pw').value;
+            const pwcRaw = document.getElementById('r-pwc').value;
+            if(pwRaw !== pwcRaw) return alert("パスワードが一致しません");
+            
+            setLoading('btn-reset', true);
+            const hashed = await hash(pwRaw);
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "reset", name, key, pw: hashed }) })
             .then(r => r.json()).then(res => {
                 if(res.success) { alert("更新完了！"); mypageView = 'login'; renderMypage(); }
-                else { alert("入力情報が正しくありません"); }
-            });
+                else { alert("情報が正しくありません"); }
+            }).finally(() => setLoading('btn-reset', false));
         }
 
         function logout() {
