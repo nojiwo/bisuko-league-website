@@ -26,47 +26,45 @@
             height: 100vh; overflow: hidden;
         }
 
-        /* ヘッダーの修正: 更新ボタン配置のためflexを使用 */
         header { 
-            background-color: var(--header-blue); 
-            padding: 10px 15px; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            flex-shrink: 0; 
-            z-index: 100;
-            height: 50px;
+            background-color: var(--header-blue); padding: 20px 0; text-align: center; 
+            flex-shrink: 0; z-index: 100; position: relative;
         }
         .user-badge {
             display: inline-block; background-color: #1a3c5e; color: white;
-            padding: 5px 20px; border-radius: 30px; border: 2px solid white;
-            font-size: 0.9rem;
+            padding: 8px 35px; border-radius: 30px; border: 2px solid white;
         }
-        /* 更新ボタン */
-        .refresh-btn {
-            position: absolute; right: 15px; background: none; border: none;
-            color: white; font-size: 1.5rem; cursor: pointer; padding: 5px;
-            display: flex; align-items: center; justify-content: center;
+        /* 更新ボタンのスタイル */
+        .reload-btn {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.2); border: 1px solid white; color: white;
+            border-radius: 50%; width: 40px; height: 40px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
         }
 
-        /* 全画面ローディングオーバーレイ */
+        /* ロード中のオーバーレイ */
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            color: white;
+            background: rgba(0,0,0,0.5); z-index: 9999; display: none;
+            flex-direction: column; align-items: center; justify-content: center; color: white;
         }
-        .big-spinner {
-            width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3);
-            border-top: 5px solid #fff; border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 15px;
+        .large-spinner {
+            width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid #fff; border-radius: 50%; animation: spin 1s linear infinite;
+            margin-bottom: 10px;
         }
 
         main { flex: 1; position: relative; overflow: hidden; }
+
         .page-section { display: none; height: 100%; flex-direction: column; }
         .page-section.active { display: flex; }
-        .section-scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; }
+
+        .section-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 80px;
+        }
 
         /* League: ドラッグ&ドロップリスト */
         .prediction-list { list-style: none; padding: 10px; margin: 0; }
@@ -80,8 +78,10 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             cursor: grab; flex-shrink: 0;
         }
+        .drag-handle:active { cursor: grabbing; }
         .rank-num { font-weight: bold; font-size: 1.1rem; line-height: 1; }
         .handle-dots { color: rgba(255,255,255,0.5); font-size: 10px; margin-top: 2px; font-weight: bold; }
+        
         .item-content { flex: 1; padding: 0 15px; font-weight: bold; font-size: 0.95rem; color: #333; display: flex; justify-content: space-between; align-items: center; }
         .badge { font-size: 0.7rem; padding: 3px 7px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
         .badge-kanto { background: #ff4d4d; color: white; }
@@ -91,22 +91,23 @@
         .data-table-container { width: 100%; overflow-x: auto; background: white; }
         table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; min-width: 450px; }
         th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; white-space: nowrap; }
-        th { background: #f4f4f4; position: sticky; top: 0; z-index: 20; }
+        th { background: #f4f4f4; position: sticky; top: 0; z-index: 20; border-top: none; }
         .col-sticky { position: sticky; left: 0; background: #f9f9f9; z-index: 10; }
+        th.col-sticky { z-index: 30; top: 0; } 
 
         .bg-red { background-color: var(--bg-red) !important; }
         .bg-yellow { background-color: var(--bg-yellow) !important; }
 
         .home-container { padding: 15px; display: flex; flex-direction: column; gap: 20px; }
         .notice-card { background: white; border-radius: 12px; padding: 15px; border-left: 6px solid #ffcc00; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .notice-title { font-weight: bold; font-size: 0.9rem; color: #333; margin-bottom: 8px; }
+        .notice-title { font-weight: bold; font-size: 0.9rem; color: #333; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
         .notice-content { font-size: 0.85rem; color: #555; line-height: 1.5; white-space: pre-wrap; }
 
-        .status-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .status-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 10px; }
         .status-header { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; font-weight: bold; color: var(--main-blue); text-align: center; }
         .status-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; }
         .status-label { color: #666; }
-        .status-value { font-weight: bold; }
+        .status-value { font-weight: bold; color: #333; }
         .status-value.ok { color: #28a745; }
         .status-value.ng { color: #dc3545; }
 
@@ -128,11 +129,15 @@
         .auth-container { padding: 20px; display: flex; flex-direction: column; gap: 15px; text-align: center; }
         .auth-container input, .auth-container select, .auth-container textarea { padding: 12px; border-radius: 8px; border: 1px solid var(--border-gray); font-size: 1rem; width: 100%; box-sizing: border-box; }
         
+        .pw-toggle-area { text-align: left; font-size: 0.8rem; color: #555; display: flex; align-items: center; gap: 8px; margin-top: -5px; }
+        .pw-toggle-area input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; }
+
         .primary-btn { 
             background: var(--main-blue); color: white; border: none; padding: 14px; 
             border-radius: 30px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem;
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
+        .primary-btn:disabled { background: #888; cursor: not-allowed; }
 
         .spinner {
             width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3);
@@ -144,7 +149,11 @@
         .auth-sub-links { margin-top: 15px; display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem; color: var(--main-blue); }
         .auth-sub-links span { cursor: pointer; text-decoration: underline; }
 
-        .list-item { background: #d9d9d9; border-bottom: 1px solid #bbb; padding: 18px 15px; display: flex; justify-content: space-between; align-items: center; }
+        .group-label { padding: 15px 15px 5px; font-size: 0.9rem; color: #333; font-weight: bold; }
+        .list-item { background: #d9d9d9; border-bottom: 1px solid #bbb; padding: 18px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .list-item.no-arrow { cursor: default; }
+        .list-item span { color: #666; font-size: 1.2rem; font-weight: bold; }
+        .logout-btn-container { padding: 30px 20px; text-align: center; }
         .logout-btn { 
             display: inline-block; width: 220px; padding: 12px; border: 2px solid red; 
             background: white; color: red; border-radius: 30px; font-weight: bold; cursor: pointer; 
@@ -159,19 +168,21 @@
 <body>
 
     <div id="loading-overlay">
-        <div class="big-spinner"></div>
-        <div id="loading-text">データを同期中...</div>
+        <div class="large-spinner"></div>
+        <div id="loading-text">データを読み込み中...</div>
     </div>
 
     <header>
-        <div class="user-badge" id="header-user-badge">ゲストさん</div>
-        <button class="refresh-btn" onclick="refreshCurrentPage()" title="再読み込み">↻</button>
+        <div class="user-badge">ゲストさん</div>
+        <button class="reload-btn" onclick="fetchAllData(true)" title="再読み込み">🔄</button>
     </header>
 
     <main>
         <section id="home" class="page-section active">
             <div class="section-scroll-area">
-                <div class="home-container" id="home-content"></div>
+                <div class="home-container" id="home-content">
+                    <div style="text-align:center; padding:50px;">同期中...</div>
+                </div>
             </div>
         </section>
 
@@ -224,119 +235,90 @@
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxWbCA7gRrqyTr1Ti_CEeB_9fZHbzrC7TFJlYJLTEa2xBVEtleC2vR1NXdLufw3okJj/exec";
-        
-        // --- 状態管理 ---
         let currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
-        let activeMainPage = 'home';
-        let activeSubTabs = { league: 0, data: 0, qa: 0 };
         let mypageView = currentUser ? 'dashboard' : 'login';
-
-        // キャッシュデータ
+        
+        let activeSubTabs = { league: 0, data: 0, qa: 0 };
         let cachedHomeData = null;
-        let cachedLeagueData = { status: null, initialList: null, currentSortList: null, kanto: [], center: [], eventStatus: null };
-        let cachedDataTabs = { 0: null, 1: null, 2: null };
         let cachedInquiryHistory = null;
-
-        // --- 初期化 & 一括読み込み ---
-        window.onload = async () => {
-            updateHeader();
-            renderMypage();
-            // 最初に全データを一気にロードする
-            await loadAllData();
-            // ロード後に初期表示を整える
-            showMainPage('home', document.querySelector('[data-type="home"]'));
+        let cachedData = { 0: null, 1: null, 2: null };
+        
+        let cachedLeagueData = {
+            status: null,
+            initialList: null,
+            currentSortList: null,
+            kanto: [],
+            center: [],
+            eventStatus: null
         };
 
-        async function loadAllData() {
-            toggleOverlay(true, "データを読み込み中...");
+        // --- 追加：全データ一括読み込み関数 ---
+        async function fetchAllData(isReloading = false) {
+            const overlay = document.getElementById('loading-overlay');
+            const loadingText = document.getElementById('loading-text');
+            overlay.style.display = 'flex';
+            loadingText.innerText = isReloading ? "現在開いているタブを更新中..." : "全データを取得中...";
+
             const userId = currentUser ? currentUser.id : null;
 
             try {
-                // 並列でリクエストを投げる
+                // 並列で全データをリクエスト
                 const promises = [
-                    fetchData("getHomeData", { userId }),
-                    fetchData("getStatsData", {}),
-                    fetchData("getHistoryData", {}),
-                    fetchData("getAllPredictions", {})
+                    fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getHomeData", userId }) }).then(r => r.json()),
+                    fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getStatsData" }) }).then(r => r.json()),
+                    fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getHistoryData" }) }).then(r => r.json()),
+                    fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getAllPredictions" }) }).then(r => r.json())
                 ];
 
-                // ログイン時のみ取得するデータ
                 if (userId) {
-                    promises.push(fetchData("getPredictionList", { userId }));
-                    promises.push(fetchData("getEventStatus", { userId }));
-                    promises.push(fetchData("getInquiryHistory", { userId }));
+                    promises.push(fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getPredictionList", userId }) }).then(r => r.json()));
+                    promises.push(fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getEventStatus", userId }) }).then(r => r.json()));
+                    promises.push(fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getInquiryHistory", userId }) }).then(r => r.json()));
                 }
 
                 const results = await Promise.all(promises);
 
-                // 結果をキャッシュに格納
+                // 各キャッシュに格納
                 cachedHomeData = results[0];
-                cachedDataTabs[0] = results[1];
-                cachedDataTabs[1] = results[2];
-                cachedDataTabs[2] = results[3];
+                cachedData[0] = results[1];
+                cachedData[1] = results[2];
+                cachedData[2] = results[3];
 
                 if (userId) {
-                    const lData = results[4];
-                    cachedLeagueData.status = lData.status;
-                    cachedLeagueData.initialList = lData.list;
-                    cachedLeagueData.currentSortList = [...lData.list];
-                    cachedLeagueData.kanto = lData.kanto || [];
-                    cachedLeagueData.center = lData.center || [];
+                    const leagueRes = results[4];
+                    cachedLeagueData.status = leagueRes.status;
+                    cachedLeagueData.initialList = leagueRes.list;
+                    // 再読み込みでなければ、現在の並び順を初期化。再読み込みなら維持しても良いが基本リセット
+                    cachedLeagueData.currentSortList = [...leagueRes.list];
+                    cachedLeagueData.kanto = leagueRes.kanto || [];
+                    cachedLeagueData.center = leagueRes.center || [];
+                    
                     cachedLeagueData.eventStatus = results[5];
                     cachedInquiryHistory = results[6];
                 }
 
-                // 各画面の描画を更新
-                refreshUI();
+                // 現在のアクティブな画面を再描画
+                refreshCurrentView();
 
             } catch (e) {
                 console.error(e);
                 alert("データの取得に一部失敗しました。");
             } finally {
-                toggleOverlay(false);
+                overlay.style.display = 'none';
             }
         }
 
-        // 汎用 fetch 関数
-        async function fetchData(action, body) {
-            const res = await fetch(GAS_URL, { 
-                method: "POST", 
-                body: JSON.stringify({ action, ...body }) 
-            });
-            return await res.json();
+        // 現在表示されているコンテンツをキャッシュから再描画
+        function refreshCurrentView() {
+            const activeMain = document.querySelector('.page-section.active').id;
+            if (activeMain === 'home') displayHome();
+            if (activeMain === 'league') renderLeagueContent(activeSubTabs.league);
+            if (activeMain === 'data') loadDataTab(activeSubTabs.data);
+            if (activeMain === 'qa') renderQAContent(activeSubTabs.qa);
+            updateHeader();
         }
 
-        // --- UI更新系 ---
-        function toggleOverlay(show, text = "") {
-            const overlay = document.getElementById('loading-overlay');
-            document.getElementById('loading-text').innerText = text;
-            overlay.style.display = show ? 'flex' : 'none';
-        }
-
-        function refreshUI() {
-            renderHomeContent();
-            renderLeagueContent(activeSubTabs.league);
-            renderDataContent(activeSubTabs.data);
-            renderQAContent(activeSubTabs.qa);
-        }
-
-        // 更新ボタンが押された時の処理
-        async function refreshCurrentPage() {
-            toggleOverlay(true, "再読み込み中...");
-            const userId = currentUser ? currentUser.id : null;
-
-            try {
-                // 本来は「今開いているタブ」だけを更新しても良いですが、
-                // 整合性を保つため一括ロードを再実行するのが安全です
-                await loadAllData();
-            } finally {
-                toggleOverlay(false);
-            }
-        }
-
-        // --- 画面切り替え ---
         function showMainPage(pageId, element) {
-            activeMainPage = pageId;
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             
@@ -349,10 +331,56 @@
             const activeType = element.getAttribute('data-type');
             element.querySelector('img').src = `icon-b-${activeType}.svg`;
             
-            // タブ位置の復元
-            if(['league', 'data', 'qa'].includes(pageId)) {
-                moveSlider(pageId, activeSubTabs[pageId]);
+            if(pageId === 'home') displayHome();
+            if(pageId === 'league') moveSlider('league', activeSubTabs.league);
+            if(pageId === 'data') moveSlider('data', activeSubTabs.data);
+            if(pageId === 'qa') moveSlider('qa', activeSubTabs.qa);
+            if(pageId === 'mypage') renderMypage();
+            updateHeader();
+        }
+
+        // Homeの表示ロジックを分離
+        function displayHome() {
+            const container = document.getElementById('home-content');
+            if (!cachedHomeData) {
+                container.innerHTML = '<div style="text-align:center; padding:50px;">データがありません</div>';
+                return;
             }
+            const res = cachedHomeData;
+            const userId = currentUser ? currentUser.id : null;
+            const issueDisplay = formatJumpId(res.issueId);
+            let html = `<div class="notice-card"><div class="notice-title">📢 お知らせ</div><div class="notice-content">${res.notice || '現在お知らせはありません。'}</div></div>
+                <div class="status-card"><div class="status-header">現在のステータス</div>
+                <div class="status-row"><span class="status-label">募集中の号</span><span class="status-value">${issueDisplay}</span></div>`;
+            if (userId) {
+                html += `<div class="status-row"><span class="status-label">予想提出</span><span class="status-value ${res.isSubmitted ? 'ok' : 'ng'}">${res.isSubmitted ? '提出済み' : '未提出'}</span></div>`;
+                if (res.eventInfo) {
+                    html += `<div class="status-row"><span class="status-label">${res.eventInfo.name}</span><span class="status-value ${res.isParticipating ? 'ok' : 'ng'}">${res.isParticipating ? '参加中' : '未参加'}</span></div>`;
+                }
+            } else {
+                html += `<div style="text-align:center; font-size:0.8rem; color:#888; margin-top:10px;">ログインすると提出状況が表示されます</div>`;
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        async function initHome() {
+            if(!cachedHomeData) {
+                // 初回読み込み。通常はonloadのfetchAllDataで行われる
+                displayHome();
+            } else {
+                displayHome();
+            }
+        }
+
+        function formatJumpId(id) {
+            if(!id || !id.startsWith('WJ_')) return '未設定';
+            const num = id.replace('WJ_', '');
+            const year = num.substring(0, 4);
+            const issueStr = num.substring(4, 6);
+            const issue = parseInt(issueStr, 10);
+            const merger = num.substring(6, 8);
+            return merger === "00" ? `${year}年${issue}号` : `${year}年${issue}/${parseInt(merger, 10)}合併号`;
         }
 
         function moveSlider(sectionId, index) {
@@ -367,82 +395,51 @@
             for (let t of tabs) t.classList.remove('active');
             tabs[index].classList.add('active');
             
-            if(sectionId === 'league') renderLeagueContent(index);
-            if(sectionId === 'data') renderDataContent(index);
             if(sectionId === 'qa') renderQAContent(index);
+            if(sectionId === 'data') loadDataTab(index);
+            if(sectionId === 'league') renderLeagueContent(index);
         }
 
-        // --- 各セクションの描画関数 (キャッシュから描画) ---
-
-        function renderHomeContent() {
-            const container = document.getElementById('home-content');
-            if (!cachedHomeData) { container.innerHTML = "データがありません"; return; }
-            const res = cachedHomeData;
-            const userId = currentUser ? currentUser.id : null;
-            const issueDisplay = formatJumpId(res.issueId);
-            
-            let html = `<div class="notice-card"><div class="notice-title">📢 お知らせ</div><div class="notice-content">${res.notice || 'お知らせはありません'}</div></div>
-                <div class="status-card"><div class="status-header">現在のステータス</div>
-                <div class="status-row"><span class="status-label">募集中の号</span><span class="status-value">${issueDisplay}</span></div>`;
-            if (userId) {
-                html += `<div class="status-row"><span class="status-label">予想提出</span><span class="status-value ${res.isSubmitted ? 'ok' : 'ng'}">${res.isSubmitted ? '提出済み' : '未提出'}</span></div>`;
-                if (res.eventInfo) {
-                    html += `<div class="status-row"><span class="status-label">${res.eventInfo.name}</span><span class="status-value ${res.isParticipating ? 'ok' : 'ng'}">${res.isParticipating ? '参加中' : '未参加'}</span></div>`;
-                }
-            }
-            html += `</div>`;
-            container.innerHTML = html;
-        }
-
-        function renderLeagueContent(index) {
+        async function renderLeagueContent(index) {
             const container = document.getElementById('league-content');
             if (!currentUser) {
-                container.innerHTML = '<div style="text-align:center; padding:50px;">ログインが必要です</div>';
+                container.innerHTML = `<div style="text-align:center; padding:50px; color:#666;"><p>League機能の利用にはログインが必要です。</p></div>`;
                 return;
             }
-            if (index === 0) displaySortableList();
-            else displayEventStatus();
-        }
 
-        function renderDataContent(index) {
-            const container = document.getElementById('data-content');
-            const data = cachedDataTabs[index];
-            if (!data) { container.innerHTML = "読み込み中..."; return; }
-            
-            if (index === 0) renderStatsTable(data, container);
-            else if (index === 1) renderHistoryTable(data, container);
-            else if (index === 2) renderPredictionTable(data, container);
-        }
-
-        // --- (以下、既存のロジックを流用・整理) ---
-
-        function formatJumpId(id) {
-            if(!id || !id.startsWith('WJ_')) return '未設定';
-            const num = id.replace('WJ_', '');
-            return `${num.substring(0, 4)}年${parseInt(num.substring(4, 6), 10)}号`;
+            if (index === 0) {
+                if (cachedLeagueData.currentSortList) displaySortableList();
+                else container.innerHTML = '<div style="text-align:center; padding:50px;">データ未取得</div>';
+            } else {
+                if (cachedLeagueData.eventStatus) displayEventStatus();
+                else container.innerHTML = '<div style="text-align:center; padding:50px;">データ未取得</div>';
+            }
         }
 
         function displaySortableList() {
             const container = document.getElementById('league-content');
             if (cachedLeagueData.status === "CLOSE") {
-                container.innerHTML = '<div style="text-align:center; padding:80px; color:#888;">受付期間外です</div>';
+                container.innerHTML = '<div style="text-align:center; padding:80px; color:#888; font-weight:bold;">現在は受付期間外です</div>';
                 return;
             }
+
             let html = `<ul id="sortable-list" class="prediction-list">`;
             cachedLeagueData.currentSortList.forEach((name, i) => {
                 let badge = "";
                 if (cachedLeagueData.kanto.includes(name)) badge = '<span class="badge badge-kanto">巻頭</span>';
                 else if (cachedLeagueData.center.includes(name)) badge = '<span class="badge badge-center">センター</span>';
+                
                 html += `<li class="prediction-item" data-name="${name}"><div class="drag-handle"><span class="rank-num">${i + 1}</span><span class="handle-dots">::::</span></div><div class="item-content"><span>${name}</span>${badge}</div></li>`;
             });
-            html += `</ul><div style="padding:15px;"><button class="primary-btn" id="btn-save-prediction" onclick="savePrediction()"><div class="spinner"></div><span>提出する</span></button></div>`;
+            html += `</ul><div style="padding:15px; margin-bottom:20px;"><button class="primary-btn" id="btn-save-prediction" onclick="savePrediction()"><div class="spinner"></div><span>この順番で提出する</span></button></div>`;
             container.innerHTML = html;
+
             Sortable.create(document.getElementById('sortable-list'), {
                 handle: '.drag-handle', animation: 150,
-                onEnd: () => {
+                onEnd: function() {
                     const items = document.querySelectorAll('.prediction-item');
                     cachedLeagueData.currentSortList = Array.from(items).map(item => item.getAttribute('data-name'));
-                    document.querySelectorAll('.rank-num').forEach((el, idx) => el.innerText = idx + 1);
+                    document.querySelectorAll('.rank-num').forEach((numEl, idx) => { numEl.innerText = idx + 1; });
                 }
             });
         }
@@ -450,35 +447,56 @@
         function displayEventStatus() {
             const container = document.getElementById('league-content');
             const res = cachedLeagueData.eventStatus;
-            if (!res || !res.hasActiveQualifying) {
-                container.innerHTML = '<div style="text-align:center; padding:50px;">募集中の予選はありません</div>';
+            if (!res.hasActiveQualifying) {
+                container.innerHTML = '<div style="text-align:center; padding:50px; color:#666;">現在募集中の予選はありません。</div>';
                 return;
             }
             const isJoined = res.isParticipating;
-            container.innerHTML = `<div style="padding:30px; text-align:center;"><h3>${res.eventName}</h3><button class="primary-btn" style="background:${isJoined ? '#dc3545' : ''}" onclick="toggleEventParticipation(${isJoined})"><span>${isJoined ? '辞退する' : '参加する'}</span></button></div>`;
+            container.innerHTML = `
+                <div style="padding:30px 20px; text-align:center;">
+                    <h2 style="margin:0 0 10px; color:var(--main-blue);">${res.eventName}</h2>
+                    <p style="color:#666; font-size:0.9rem; margin-bottom:30px;">現在、参加希望を${isJoined ? '提出済みです' : '提出していません'}。</p>
+                    <button class="primary-btn" id="btn-toggle-event" style="background:${isJoined ? '#dc3545' : ''}" onclick="toggleEventParticipation(${isJoined})"><div class="spinner"></div><span>${isJoined ? '参加を辞退する' : '参加を希望する'}</span></button>
+                </div>`;
         }
 
-        // 保存・送信などのアクション
         async function savePrediction() {
             setLoading('btn-save-prediction', true);
             try {
-                const res = await fetchData("savePrediction", { userId: currentUser.id, prediction: cachedLeagueData.currentSortList });
-                if(res.success) alert("提出しました");
-            } catch(e) { alert("失敗"); }
+                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "savePrediction", userId: currentUser.id, prediction: cachedLeagueData.currentSortList }) });
+                const res = await response.json();
+                if(res.success) alert("予想を提出しました！"); else alert("失敗: " + res.message);
+            } catch (e) { alert("通信エラー"); }
             setLoading('btn-save-prediction', false);
         }
 
-        async function toggleEventParticipation(current) {
-            toggleOverlay(true, "更新中...");
+        async function toggleEventParticipation(currentStatus) {
+            setLoading('btn-toggle-event', true);
             try {
-                await fetchData("toggleEventParticipation", { userId: currentUser.id, userName: currentUser.name, join: !current });
-                await loadAllData(); // 状態が変わるので再取得
-            } finally {
-                toggleOverlay(false);
-            }
+                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "toggleEventParticipation", userId: currentUser.id, userName: currentUser.name, join: !currentStatus }) });
+                const res = await response.json();
+                if(res.success) {
+                    // ここは個別に再取得
+                    const freshStatus = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getEventStatus", userId: currentUser.id }) }).then(r => r.json());
+                    cachedLeagueData.eventStatus = freshStatus;
+                    displayEventStatus();
+                }
+            } catch (e) { alert("更新失敗"); }
+            setLoading('btn-toggle-event', false);
         }
 
-        // --- テーブル描画ロジック (省略せず維持) ---
+        async function loadDataTab(index) {
+            const container = document.getElementById('data-content');
+            if (cachedData[index]) { displayData(index, cachedData[index], container); }
+            else { container.innerHTML = '<div style="text-align:center; padding:50px;">データ未取得</div>'; }
+        }
+
+        function displayData(index, data, container) {
+            if (index === 0) renderStatsTable(data, container);
+            else if (index === 1) renderHistoryTable(data, container);
+            else if (index === 2) renderPredictionTable(data, container);
+        }
+
         function renderStatsTable(data, container) {
             let html = '<table><thead><tr><th class="col-sticky">順位</th><th class="col-sticky" style="left:40px;">作品名</th>';
             data.headers.forEach(h => html += `<th>${h}</th>`);
@@ -486,7 +504,7 @@
             data.rows.forEach((row, i) => {
                 html += `<tr><td class="col-sticky">${i+1}</td><td class="col-sticky" style="left:40px; text-align:left;">${row.name}</td>`;
                 row.ranks.forEach((r, idx) => {
-                    let cls = row.colors[idx] == 1 ? "bg-red" : (row.colors[idx] == 2 ? "bg-yellow" : "");
+                    let cls = (row.colors[idx] == 1) ? "bg-red" : (row.colors[idx] == 2) ? "bg-yellow" : "";
                     html += `<td class="${cls}">${r}</td>`;
                 });
                 html += `<td style="font-weight:bold;">${row.avg}</td></tr>`;
@@ -503,7 +521,7 @@
                 html += '<tr>';
                 data.columns.forEach(col => {
                     const item = col.list[i] || "";
-                    let cls = col.kanto.includes(item) ? "bg-red" : (col.center.includes(item) ? "bg-yellow" : "");
+                    let cls = col.kanto.includes(item) ? "bg-red" : col.center.includes(item) ? "bg-yellow" : "";
                     html += `<td class="${cls}">${item}</td>`;
                 });
                 html += '</tr>';
@@ -512,7 +530,7 @@
         }
 
         function renderPredictionTable(data, container) {
-            if (!data.isOpen) { container.innerHTML = '<div style="padding:50px; text-align:center;">CLOSE後に公開されます</div>'; return; }
+            if (!data.isOpen) { container.innerHTML = '<div style="text-align:center; padding:50px;">CLOSE後に公開されます。</div>'; return; }
             let html = '<table><thead><tr>';
             data.columns.forEach(col => html += `<th>${col.userName}</th>`);
             html += '</tr></thead><tbody>';
@@ -521,7 +539,7 @@
                 html += '<tr>';
                 data.columns.forEach(col => {
                     const item = col.list[i] || "";
-                    let cls = data.currentKanto.includes(item) ? "bg-red" : (data.currentCenter.includes(item) ? "bg-yellow" : "");
+                    let cls = data.currentKanto.includes(item) ? "bg-red" : data.currentCenter.includes(item) ? "bg-yellow" : "";
                     html += `<td class="${cls}">${item}</td>`;
                 });
                 html += '</tr>';
@@ -529,83 +547,54 @@
             container.innerHTML = html + '</tbody></table>';
         }
 
-        // Q&A 描画
         function renderQAContent(index) {
             const container = document.getElementById('qa-content');
-            if (!currentUser) { container.innerHTML = "ログインが必要です"; return; }
+            if (!currentUser) { container.innerHTML = `<div style="text-align:center; padding:50px;">ログインが必要です。</div>`; return; }
             if (index === 0) {
-                container.innerHTML = `<div class="auth-container"><select id="qa-category"><option>不具合の報告</option><option>その他</option></select><textarea id="qa-body" style="height:100px;"></textarea><button class="primary-btn" onclick="sendInquiry()">送信</button></div>`;
-            } else {
-                if(!cachedInquiryHistory || cachedInquiryHistory.length === 0) { container.innerHTML = "履歴はありません"; return; }
-                let html = '';
-                cachedInquiryHistory.forEach(item => {
-                    html += `<div class="status-card" style="margin-bottom:10px;"><b>${item.category}</b><br>${item.content.substring(0,20)}...<br><small>${item.answer ? '回答あり' : '未回答'}</small></div>`;
-                });
-                container.innerHTML = html;
+                container.innerHTML = `<div class="auth-container" style="padding:0;"><select id="qa-category"><option>不具合の報告</option><option>使用方法</option><option>その他</option></select><textarea id="qa-body" placeholder="内容" style="height:150px;"></textarea><button class="primary-btn" id="btn-qa-send" onclick="sendInquiry()"><div class="spinner"></div><span>送信</span></button></div>`;
+            } else if (index === 1) {
+                if (cachedInquiryHistory) displayInquiryHistory();
+                else container.innerHTML = '履歴なし';
             }
         }
 
         async function sendInquiry() {
-            const category = document.getElementById('qa-category').value;
-            const content = document.getElementById('qa-body').value;
-            if(!content) return;
-            toggleOverlay(true, "送信中...");
+            const body = document.getElementById('qa-body').value;
+            if(!body) return alert("入力してください");
+            setLoading('btn-qa-send', true);
             try {
-                await fetchData("sendInquiry", { userId: currentUser.id, category, content });
+                await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "sendInquiry", userId: currentUser.id, category: document.getElementById('qa-category').value, content: body }) });
                 alert("送信しました");
-                await loadAllData();
-            } finally {
-                toggleOverlay(false);
-            }
+                fetchAllData(true); // 履歴を更新するために再取得
+            } catch (e) { alert("エラー"); }
+            setLoading('btn-qa-send', false);
         }
 
-        // --- マイページ & 認証 ---
-        function updateHeader() {
-            document.getElementById('header-user-badge').innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん';
+        function displayInquiryHistory() {
+            const container = document.getElementById('qa-content');
+            let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+            cachedInquiryHistory.forEach((item, idx) => {
+                html += `<div class="status-card" onclick="showInquiryDetail(${idx})"><b>${item.category}</b><br><small>${item.timestamp}</small></div>`;
+            });
+            container.innerHTML = html + '</div>';
         }
+
+        function showInquiryDetail(idx) {
+            const item = cachedInquiryHistory[idx];
+            document.getElementById('qa-content').innerHTML = `<div><h3>詳細</h3><p>${item.content}</p><hr><p>回答: ${item.answer || '未回答'}</p><button onclick="displayInquiryHistory()">戻る</button></div>`;
+        }
+
+        function updateHeader() { document.querySelector('.user-badge').innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん'; }
 
         function renderMypage() {
             const container = document.getElementById('mypage-container');
             if (mypageView === 'login') {
-                container.innerHTML = `<div class="auth-container"><input type="text" id="l-name" placeholder="ユーザー名"><input type="password" id="l-pw" placeholder="パスワード"><button class="primary-btn" id="btn-login" onclick="login()">ログイン</button><div class="auth-sub-links"><span onclick="mypageView='signup';renderMypage()">新規登録</span></div></div>`;
+                container.innerHTML = `<div class="auth-container"><input type="text" id="l-name" placeholder="ユーザー名"><input type="password" id="l-pw" placeholder="パスワード"><button class="primary-btn" id="btn-login" onclick="login()"><div class="spinner"></div><span>ログイン</span></button><div class="auth-sub-links"><span onclick="mypageView='signup';renderMypage()">新規登録</span></div></div>`;
             } else if (mypageView === 'signup') {
-                container.innerHTML = `<div class="auth-container"><input type="text" id="s-name" placeholder="名(8文字)"><input type="password" id="s-pw" placeholder="パスワード"><input type="text" id="s-key" placeholder="秘密の鍵"><button class="primary-btn" onclick="signup()">登録</button><div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div></div>`;
+                container.innerHTML = `<div class="auth-container"><input type="text" id="s-name" placeholder="ユーザー名"><input type="password" id="s-pw" placeholder="パスワード"><input type="text" id="s-key" placeholder="キーワード"><button class="primary-btn" id="btn-signup" onclick="signup()"><div class="spinner"></div><span>登録</span></button></div>`;
             } else if (mypageView === 'dashboard') {
-                container.innerHTML = `<div style="padding:20px;"><div class="list-item">ユーザー名: ${currentUser.name}</div><div class="list-item">ID: ${currentUser.id}</div><button class="logout-btn" onclick="logout()">ログアウト</button></div>`;
+                container.innerHTML = `<div class="group-label">ユーザー情報</div><div class="list-item no-arrow">ユーザー名 <span>${currentUser.name}</span></div><div class="logout-btn-container"><button class="logout-btn" onclick="logout()">ログアウト</button></div>`;
             }
-        }
-
-        async function login() {
-            const name = document.getElementById('l-name').value;
-            const pw = document.getElementById('l-pw').value;
-            setLoading('btn-login', true);
-            try {
-                const res = await fetchData("login", { name, pw: await hash(pw) });
-                if(res.success) {
-                    currentUser = { name: res.name, id: res.id };
-                    localStorage.setItem('jump_user', JSON.stringify(currentUser));
-                    mypageView = 'dashboard';
-                    updateHeader();
-                    await loadAllData();
-                    renderMypage();
-                } else { alert("ログイン失敗"); }
-            } finally { setLoading('btn-login', false); }
-        }
-
-        function logout() {
-            localStorage.removeItem('jump_user');
-            currentUser = null;
-            mypageView = 'login';
-            updateHeader();
-            location.reload(); // 状態を完全リセット
-        }
-
-        async function signup() {
-            const name = document.getElementById('s-name').value;
-            const pw = document.getElementById('s-pw').value;
-            const key = document.getElementById('s-key').value;
-            const res = await fetchData("signup", { name, pw: await hash(pw), key });
-            if(res.success) { alert("登録完了"); mypageView = 'login'; renderMypage(); }
         }
 
         async function hash(pw) {
@@ -614,11 +603,39 @@
             return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        function setLoading(id, loading) {
-            const btn = document.getElementById(id); if(!btn) return;
-            btn.disabled = loading;
-            btn.querySelector('.spinner').style.display = loading ? 'block' : 'none';
+        function setLoading(btnId, isLoading) {
+            const btn = document.getElementById(btnId); if(!btn) return;
+            const spinner = btn.querySelector('.spinner'); const text = btn.querySelector('span');
+            btn.disabled = isLoading; spinner.style.display = isLoading ? 'block' : 'none'; text.style.opacity = isLoading ? '0.5' : '1';
         }
+
+        async function login() {
+            const name = document.getElementById('l-name').value;
+            const passInput = document.getElementById('l-pw').value;
+            if(!name || !passInput) return alert("入力してください");
+            setLoading('btn-login', true);
+            const hashedPw = await hash(passInput);
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name, pw: hashedPw }) })
+            .then(r => r.json()).then(res => {
+                if(res.success) {
+                    currentUser = { name: res.name, id: res.id };
+                    localStorage.setItem('jump_user', JSON.stringify(currentUser));
+                    mypageView = 'dashboard';
+                    fetchAllData(); // ログイン後に全データを取得し直す
+                } else { alert("失敗しました"); }
+            }).finally(() => setLoading('btn-login', false));
+        }
+
+        function logout() { 
+            localStorage.removeItem('jump_user'); currentUser = null; mypageView = 'login'; 
+            cachedData = { 0: null, 1: null, 2: null };
+            cachedLeagueData = { status: null, initialList: null, currentSortList: null, kanto: [], center: [], eventStatus: null };
+            updateHeader(); renderMypage(); displayHome();
+        }
+
+        window.onload = () => { 
+            fetchAllData(); 
+        };
     </script>
 </body>
 </html>
