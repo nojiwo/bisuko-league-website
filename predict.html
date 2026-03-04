@@ -151,7 +151,10 @@
         <section id="home" class="page-section active">
             <div class="section-scroll-area">
                 <div class="home-container" id="home-content">
-                    <div style="text-align:center; padding:50px;">同期中...</div>
+                    <div style="text-align:center; padding:50px;">
+                        <div class="spinner" style="display:inline-block; border-top-color:var(--main-blue);"></div>
+                        <p>データを同期中...</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -209,18 +212,59 @@
         let mypageView = currentUser ? 'dashboard' : 'login';
         
         let activeSubTabs = { league: 0, data: 0, qa: 0 };
+        
+        // --- キャッシュデータ保持用 ---
+        let cachedHomeData = null;
         let cachedInquiryHistory = null;
         let cachedData = { 0: null, 1: null, 2: null };
-        
-        // --- League状態保持用のキャッシュ ---
         let cachedLeagueData = {
-            status: null, // OPEN or CLOSE
-            initialList: null, // 初期取得リスト
-            currentSortList: null, // 並び替え途中のリスト
+            status: null,
+            initialList: null,
+            currentSortList: null,
             kanto: [],
             center: [],
-            eventStatus: null // 予選参加状況キャッシュ
+            eventStatus: null
         };
+
+        /**
+         * アプリ起動時、またはログイン時に全データを一括取得する
+         */
+        async function fetchAllData() {
+            const userId = currentUser ? currentUser.id : null;
+            try {
+                const response = await fetch(GAS_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify({ action: "getAllData", userId }) 
+                });
+                const res = await response.json();
+
+                // 1. ホーム
+                cachedHomeData = res.home;
+                
+                // 2. League (予想リスト)
+                cachedLeagueData.status = res.prediction ? "OPEN" : "CLOSE"; // predictionがnullならCLOSE扱い
+                if (res.prediction) {
+                    cachedLeagueData.initialList = res.prediction.list;
+                    cachedLeagueData.currentSortList = [...res.prediction.list];
+                    cachedLeagueData.kanto = res.prediction.kanto;
+                    cachedLeagueData.center = res.prediction.center;
+                }
+                cachedLeagueData.eventStatus = res.event;
+
+                // 3. Data (統計・履歴・全員の予想)
+                cachedData[0] = res.stats;
+                cachedData[1] = res.history;
+                cachedData[2] = res.allPredictions;
+
+                // 4. Q&A (履歴)
+                cachedInquiryHistory = res.inquiry;
+
+                // 初期表示を更新
+                initHome(); 
+            } catch (e) {
+                document.getElementById('home-content').innerHTML = `<div style="text-align:center; padding:20px;">データの取得に失敗しました。電波の良い所で再読み込みしてください。</div>`;
+            }
+        }
 
         function showMainPage(pageId, element) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -243,29 +287,27 @@
             updateHeader();
         }
 
-        async function initHome() {
+        function initHome() {
             const container = document.getElementById('home-content');
+            if (!cachedHomeData) return; // まだ取得できていなければ何もしない
+
+            const res = cachedHomeData;
             const userId = currentUser ? currentUser.id : null;
-            try {
-                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getHomeData", userId }) });
-                const res = await response.json();
-                const issueDisplay = formatJumpId(res.issueId);
-                let html = `<div class="notice-card"><div class="notice-title">📢 お知らせ</div><div class="notice-content">${res.notice || '現在お知らせはありません。'}</div></div>
-                    <div class="status-card"><div class="status-header">現在のステータス</div>
-                    <div class="status-row"><span class="status-label">募集中の号</span><span class="status-value">${issueDisplay}</span></div>`;
-                if (userId) {
-                    html += `<div class="status-row"><span class="status-label">予想提出</span><span class="status-value ${res.isSubmitted ? 'ok' : 'ng'}">${res.isSubmitted ? '提出済み' : '未提出'}</span></div>`;
-                    if (res.eventInfo) {
-                        html += `<div class="status-row"><span class="status-label">${res.eventInfo.name}</span><span class="status-value ${res.isParticipating ? 'ok' : 'ng'}">${res.isParticipating ? '参加中' : '未参加'}</span></div>`;
-                    }
-                } else {
-                    html += `<div style="text-align:center; font-size:0.8rem; color:#888; margin-top:10px;">ログインすると提出状況が表示されます</div>`;
+            const issueDisplay = formatJumpId(res.issueId);
+            
+            let html = `<div class="notice-card"><div class="notice-title">📢 お知らせ</div><div class="notice-content">${res.notice || '現在お知らせはありません。'}</div></div>
+                <div class="status-card"><div class="status-header">現在のステータス</div>
+                <div class="status-row"><span class="status-label">募集中の号</span><span class="status-value">${issueDisplay}</span></div>`;
+            if (userId) {
+                html += `<div class="status-row"><span class="status-label">予想提出</span><span class="status-value ${res.isSubmitted ? 'ok' : 'ng'}">${res.isSubmitted ? '提出済み' : '未提出'}</span></div>`;
+                if (res.eventInfo) {
+                    html += `<div class="status-row"><span class="status-label">${res.eventInfo.name}</span><span class="status-value ${res.isParticipating ? 'ok' : 'ng'}">${res.isParticipating ? '参加中' : '未参加'}</span></div>`;
                 }
-                html += `</div>`;
-                container.innerHTML = html;
-            } catch (e) {
-                container.innerHTML = `<div style="text-align:center; padding:20px;">同期に失敗しました</div>`;
+            } else {
+                html += `<div style="text-align:center; font-size:0.8rem; color:#888; margin-top:10px;">ログインすると提出状況が表示されます</div>`;
             }
+            html += `</div>`;
+            container.innerHTML = html;
         }
 
         function formatJumpId(id) {
@@ -295,11 +337,9 @@
             if(sectionId === 'league') renderLeagueContent(index);
         }
 
-        // --- League機能の実装 ---
-        async function renderLeagueContent(index) {
+        // --- League機能の実装 (キャッシュ使用) ---
+        function renderLeagueContent(index) {
             const container = document.getElementById('league-content');
-            
-            // ログインガード
             if (!currentUser) {
                 container.innerHTML = `
                     <div style="text-align:center; padding:50px; color:#666;">
@@ -310,42 +350,15 @@
             }
 
             if (index === 0) {
-                // 予想提出タブ
-                if (cachedLeagueData.currentSortList) {
-                    displaySortableList(); // キャッシュがあれば即座に表示
-                } else {
-                    container.innerHTML = '<div style="text-align:center; padding:50px;">リストを読み込み中...</div>';
-                    try {
-                        const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getPredictionList", userId: currentUser.id }) });
-                        const res = await response.json();
-                        cachedLeagueData.status = res.status; // OPEN or CLOSE
-                        cachedLeagueData.initialList = res.list;
-                        cachedLeagueData.currentSortList = [...res.list];
-                        cachedLeagueData.kanto = res.kanto || [];
-                        cachedLeagueData.center = res.center || [];
-                        displaySortableList();
-                    } catch (e) { container.innerHTML = '<div style="text-align:center; padding:50px;">取得エラー</div>'; }
-                }
+                displaySortableList();
             } else {
-                // 予選参加希望タブ
-                if (cachedLeagueData.eventStatus) {
-                    displayEventStatus();
-                } else {
-                    container.innerHTML = '<div style="text-align:center; padding:50px;">状況を読み込み中...</div>';
-                    try {
-                        const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getEventStatus", userId: currentUser.id }) });
-                        cachedLeagueData.eventStatus = await response.json();
-                        displayEventStatus();
-                    } catch (e) { container.innerHTML = 'エラー'; }
-                }
+                displayEventStatus();
             }
         }
 
         function displaySortableList() {
             const container = document.getElementById('league-content');
-            
-            // 受付期間外のチェック
-            if (cachedLeagueData.status === "CLOSE") {
+            if (cachedLeagueData.status === "CLOSE" || !cachedLeagueData.currentSortList) {
                 container.innerHTML = '<div style="text-align:center; padding:80px; color:#888; font-weight:bold;">現在は受付期間外です</div>';
                 return;
             }
@@ -370,22 +383,16 @@
                     <button class="primary-btn" id="btn-save-prediction" onclick="savePrediction()">
                         <div class="spinner"></div><span>この順番で提出する</span>
                     </button>
-                    <p style="text-align:center; font-size:0.75rem; color:#888; margin-top:10px;">※提出するまで順番は確定されません</p>
                 </div>`;
             container.innerHTML = html;
 
-            const el = document.getElementById('sortable-list');
-            Sortable.create(el, {
+            Sortable.create(document.getElementById('sortable-list'), {
                 handle: '.drag-handle',
                 animation: 150,
-                onEnd: function() {
-                    const items = el.querySelectorAll('.prediction-item');
-                    const newList = Array.from(items).map(item => item.getAttribute('data-name'));
-                    cachedLeagueData.currentSortList = newList; // 並び順をキャッシュに保存
-                    // ランク数字の更新
-                    document.querySelectorAll('.rank-num').forEach((numEl, idx) => {
-                        numEl.innerText = idx + 1;
-                    });
+                onEnd: function(evt) {
+                    const items = evt.from.querySelectorAll('.prediction-item');
+                    cachedLeagueData.currentSortList = Array.from(items).map(item => item.getAttribute('data-name'));
+                    document.querySelectorAll('.rank-num').forEach((numEl, idx) => { numEl.innerText = idx + 1; });
                 }
             });
         }
@@ -393,7 +400,7 @@
         function displayEventStatus() {
             const container = document.getElementById('league-content');
             const res = cachedLeagueData.eventStatus;
-            if (!res.hasActiveQualifying) {
+            if (!res || !res.hasActiveQualifying) {
                 container.innerHTML = '<div style="text-align:center; padding:50px; color:#666;">現在募集中の予選はありません。</div>';
                 return;
             }
@@ -404,9 +411,7 @@
                     <p style="color:#666; font-size:0.9rem; margin-bottom:30px;">
                         現在、参加希望を${isJoined ? '提出済みです' : '提出していません'}。
                     </p>
-                    <button class="primary-btn" id="btn-toggle-event" 
-                            style="background:${isJoined ? '#dc3545' : ''}" 
-                            onclick="toggleEventParticipation(${isJoined})">
+                    <button class="primary-btn" id="btn-toggle-event" style="background:${isJoined ? '#dc3545' : ''}" onclick="toggleEventParticipation(${isJoined})">
                         <div class="spinner"></div><span>${isJoined ? '参加を辞退する' : '参加を希望する'}</span>
                     </button>
                 </div>`;
@@ -420,7 +425,11 @@
                     body: JSON.stringify({ action: "savePrediction", userId: currentUser.id, prediction: cachedLeagueData.currentSortList }) 
                 });
                 const res = await response.json();
-                if(res.success) alert("予想を提出しました！"); else alert("失敗: " + res.message);
+                if(res.success) {
+                    alert("予想を提出しました！");
+                    // 提出状態を反映するためHomeデータを一部更新
+                    if(cachedHomeData) cachedHomeData.isSubmitted = true;
+                } else alert("失敗: " + res.message);
             } catch (e) { alert("通信エラー"); }
             setLoading('btn-save-prediction', false);
         }
@@ -434,28 +443,23 @@
                 });
                 const res = await response.json();
                 if(res.success) {
-                    cachedLeagueData.eventStatus = null; // キャッシュクリアして再取得
-                    renderLeagueContent(1);
+                    // キャッシュを反転させて再描画
+                    cachedLeagueData.eventStatus.isParticipating = !currentStatus;
+                    if(cachedHomeData) cachedHomeData.isParticipating = !currentStatus;
+                    displayEventStatus();
                 }
             } catch (e) { alert("更新失敗"); }
             setLoading('btn-toggle-event', false);
         }
 
-        // --- Data: 統計・履歴 ---
-        async function loadDataTab(index) {
+        // --- Data: 統計・履歴 (キャッシュ使用) ---
+        function loadDataTab(index) {
             const container = document.getElementById('data-content');
-            if (cachedData[index]) { displayData(index, cachedData[index], container); return; }
-            container.innerHTML = '<div style="text-align:center; padding:50px;">データを読み込み中...</div>';
-            const actionMap = ['getStatsData', 'getHistoryData', 'getAllPredictions'];
-            try {
-                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: actionMap[index] }) });
-                const data = await response.json();
-                cachedData[index] = data;
-                displayData(index, data, container);
-            } catch (e) { container.innerHTML = '<div style="text-align:center; padding:50px;">読み込みに失敗しました</div>'; }
-        }
-
-        function displayData(index, data, container) {
+            const data = cachedData[index];
+            if (!data) {
+                container.innerHTML = '<div style="text-align:center; padding:50px;">データがありません</div>';
+                return;
+            }
             if (index === 0) renderStatsTable(data, container);
             else if (index === 1) renderHistoryTable(data, container);
             else if (index === 2) renderPredictionTable(data, container);
@@ -468,15 +472,12 @@
             data.rows.forEach((row, i) => {
                 html += `<tr><td class="col-sticky">${i+1}</td><td class="col-sticky" style="left:40px; text-align:left;">${row.name}</td>`;
                 row.ranks.forEach((r, idx) => {
-                    let cls = "";
-                    if(row.colors[idx] == 1) cls = "bg-red";
-                    else if(row.colors[idx] == 2) cls = "bg-yellow";
+                    let cls = row.colors[idx] == 1 ? "bg-red" : (row.colors[idx] == 2 ? "bg-yellow" : "");
                     html += `<td class="${cls}">${r}</td>`;
                 });
                 html += `<td style="font-weight:bold;">${row.avg}</td></tr>`;
             });
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            container.innerHTML = html + '</tbody></table>';
         }
 
         function renderHistoryTable(data, container) {
@@ -488,24 +489,17 @@
                 html += '<tr>';
                 data.columns.forEach(col => {
                     const item = col.list[i] || "";
-                    let cls = "";
-                    if(col.kanto.includes(item)) cls = "bg-red";
-                    else if(col.center.includes(item)) cls = "bg-yellow";
+                    let cls = col.kanto.includes(item) ? "bg-red" : (col.center.includes(item) ? "bg-yellow" : "");
                     html += `<td class="${cls}">${item}</td>`;
                 });
                 html += '</tr>';
             }
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            container.innerHTML = html + '</tbody></table>';
         }
 
         function renderPredictionTable(data, container) {
             if (!data.isOpen) {
-                container.innerHTML = '<div style="text-align:center; padding:50px;">現在受付中です。<br>CLOSE後に公開されます。</div>';
-                return;
-            }
-            if(!data.columns || data.columns.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:50px;">まだ予想がありません</div>';
+                container.innerHTML = '<div style="text-align:center; padding:50px;">CLOSE後に公開されます。</div>';
                 return;
             }
             let html = '<table><thead><tr>';
@@ -516,15 +510,12 @@
                 html += '<tr>';
                 data.columns.forEach(col => {
                     const item = col.list[i] || "";
-                    let cls = "";
-                    if(data.currentKanto.includes(item)) cls = "bg-red";
-                    else if(data.currentCenter.includes(item)) cls = "bg-yellow";
+                    let cls = data.currentKanto.includes(item) ? "bg-red" : (data.currentCenter.includes(item) ? "bg-yellow" : "");
                     html += `<td class="${cls}">${item}</td>`;
                 });
                 html += '</tr>';
             }
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            container.innerHTML = html + '</tbody></table>';
         }
 
         // --- Q&A: 問い合わせ ---
@@ -548,36 +539,29 @@
                             <div class="spinner"></div> <span>送信する</span>
                         </button>
                     </div>`;
-            } else if (index === 1) {
-                if (cachedInquiryHistory) displayInquiryHistory();
-                else loadInquiryHistory();
+            } else {
+                displayInquiryHistory();
             }
         }
 
         async function sendInquiry() {
-            const category = document.getElementById('qa-category').value;
             const body = document.getElementById('qa-body').value;
             if(!body) return alert("内容を入力してください");
             setLoading('btn-qa-send', true);
             try {
-                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "sendInquiry", userId: currentUser.id, category, content: body }) });
+                const response = await fetch(GAS_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify({ action: "sendInquiry", userId: currentUser.id, category: document.getElementById('qa-category').value, content: body }) 
+                });
                 const res = await response.json();
                 if(res.success) {
                     alert("送信しました");
                     document.getElementById('qa-body').value = "";
-                    cachedInquiryHistory = null;
+                    // 送信後は一括再取得して履歴を更新
+                    fetchAllData();
                 }
             } catch (e) { alert("エラー"); }
             setLoading('btn-qa-send', false);
-        }
-
-        async function loadInquiryHistory() {
-            document.getElementById('qa-content').innerHTML = '<div style="text-align:center; padding:20px;">履歴を読み込み中...</div>';
-            try {
-                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getInquiryHistory", userId: currentUser.id }) });
-                cachedInquiryHistory = await response.json();
-                displayInquiryHistory();
-            } catch (e) { document.getElementById('qa-content').innerHTML = '読み込み失敗'; }
         }
 
         function displayInquiryHistory() {
@@ -589,7 +573,6 @@
             let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
             cachedInquiryHistory.forEach((item, idx) => {
                 const statusClass = item.answer ? 'ok' : 'ng';
-                const statusText = item.answer ? '回答済み' : '未回答';
                 html += `
                     <div class="status-card" style="padding:15px; cursor:pointer;" onclick="showInquiryDetail(${idx})">
                         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
@@ -598,7 +581,7 @@
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span style="font-size:0.85rem; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">${item.content}</span>
-                            <span class="status-value ${statusClass}" style="font-size:0.75rem;">${statusText}</span>
+                            <span class="status-value ${statusClass}" style="font-size:0.75rem;">${item.answer ? '回答済み' : '未回答'}</span>
                         </div>
                     </div>`;
             });
@@ -632,11 +615,11 @@
                     <div class="auth-container">
                         <input type="text" id="l-name" placeholder="ユーザー名">
                         <input type="password" id="l-pw" placeholder="パスワード">
-                        <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('l-pw')"> パスワードを表示</div>
+                        <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('l-pw')"> 表示</div>
                         <button class="primary-btn" id="btn-login" onclick="login()"><div class="spinner"></div> <span>ログイン</span></button>
                         <div class="auth-sub-links">
                             <span onclick="mypageView='signup';renderMypage()">新規登録はこちら</span>
-                            <span onclick="mypageView='reset';renderMypage()">パスワードを忘れた方はこちら</span>
+                            <span onclick="mypageView='reset';renderMypage()">パスワードを忘れた方</span>
                         </div>
                     </div>`;
             } else if (mypageView === 'signup') {
@@ -645,20 +628,8 @@
                         <input type="text" id="s-name" placeholder="ユーザー名 (8文字以内)" maxlength="8">
                         <input type="password" id="s-pw" placeholder="パスワード">
                         <input type="password" id="s-pwc" placeholder="パスワード再確認">
-                        <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('s-pw');togglePw('s-pwc')"> パスワードを表示</div>
                         <input type="text" id="s-key" placeholder="秘密のキーワード">
                         <button class="primary-btn" id="btn-signup" onclick="signup()"><div class="spinner"></div> <span>新規登録</span></button>
-                        <div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div>
-                    </div>`;
-            } else if (mypageView === 'reset') {
-                container.innerHTML = `
-                    <div class="auth-container">
-                        <input type="text" id="r-name" placeholder="ユーザー名">
-                        <input type="text" id="r-key" placeholder="秘密のキーワード">
-                        <input type="password" id="r-pw" placeholder="新パスワード">
-                        <input type="password" id="r-pwc" placeholder="新パスワード再確認">
-                        <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('r-pw');togglePw('r-pwc')"> パスワードを表示</div>
-                        <button class="primary-btn" id="btn-reset" onclick="resetPw()"><div class="spinner"></div> <span>更新</span></button>
                         <div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div>
                     </div>`;
             } else if (mypageView === 'dashboard') {
@@ -676,14 +647,12 @@
 
         function renderEditView(container) {
             const type = mypageView.replace('edit_', '');
-            let title = type === 'pass' ? "パスワードの変更" : "秘密のキーワードの変更";
             let inputs = type === 'pass' ? `
                 <input type="password" id="new-val" placeholder="新しいパスワード">
-                <input type="password" id="new-val-confirm" placeholder="パスワード再確認">
-                <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('new-val');togglePw('new-val-confirm')"> 表示</div>` 
+                <input type="password" id="new-val-confirm" placeholder="パスワード再確認">` 
                 : `<input type="text" id="new-val" placeholder="新しいキーワード">`;
             
-            container.innerHTML = `<div style="padding: 20px;"><h3>${title}</h3>
+            container.innerHTML = `<div style="padding: 20px;"><h3>変更</h3>
                 <div class="auth-container" style="padding:0;">${inputs}
                 <button class="primary-btn" id="btn-update" onclick="updateInfo('${type}')"><div class="spinner"></div> <span>変更を保存</span></button>
                 <div class="auth-sub-links"><span onclick="mypageView='dashboard';renderMypage()">キャンセル</span></div></div></div>`;
@@ -707,16 +676,17 @@
             if(!name || !passInput) return alert("入力してください");
             setLoading('btn-login', true);
             const hashedPw = await hash(passInput);
-            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name, pw: hashedPw }) })
-            .then(r => r.json()).then(res => {
+            try {
+                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name, pw: hashedPw }) });
+                const res = await response.json();
                 if(res.success) {
                     currentUser = { name: res.name, id: res.id };
                     localStorage.setItem('jump_user', JSON.stringify(currentUser));
-                    mypageView = 'dashboard'; renderMypage(); updateHeader(); initHome();
-                    cachedData = { 0: null, 1: null, 2: null };
-                    cachedLeagueData = { status: null, initialList: null, currentSortList: null, kanto: [], center: [], eventStatus: null };
-                } else { alert("失敗しました"); }
-            }).finally(() => setLoading('btn-login', false));
+                    mypageView = 'dashboard'; renderMypage(); updateHeader();
+                    fetchAllData(); // ログイン成功後に全データを自分のIDで取得し直す
+                } else alert("ログイン失敗");
+            } catch (e) { alert("エラー"); }
+            setLoading('btn-login', false);
         }
 
         async function signup() {
@@ -728,24 +698,12 @@
             if(pwRaw !== pwcRaw) return alert("パスワードが一致しません");
             setLoading('btn-signup', true);
             const hashed = await hash(pwRaw);
-            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "signup", name, pw: hashed, key }) })
-            .then(r => r.json()).then(res => {
-                if(res.success) { alert("登録完了"); mypageView = 'login'; renderMypage(); } else { alert(res.message); }
-            }).finally(() => setLoading('btn-signup', false));
-        }
-
-        async function resetPw() {
-            const name = document.getElementById('r-name').value;
-            const key = document.getElementById('r-key').value;
-            const pwRaw = document.getElementById('r-pw').value;
-            const pwcRaw = document.getElementById('r-pwc').value;
-            if(pwRaw !== pwcRaw) return alert("一致しません");
-            setLoading('btn-reset', true);
-            const hashed = await hash(pwRaw);
-            fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "reset", name, key, pw: hashed }) })
-            .then(r => r.json()).then(res => {
-                if(res.success) { alert("更新完了"); mypageView = 'login'; renderMypage(); } else { alert("情報が正しくありません"); }
-            }).finally(() => setLoading('btn-reset', false));
+            try {
+                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "signup", name, pw: hashed, key }) });
+                const res = await response.json();
+                if(res.success) { alert("登録完了"); mypageView = 'login'; renderMypage(); } else alert(res.message);
+            } catch (e) { alert("エラー"); }
+            setLoading('btn-signup', false);
         }
 
         async function updateInfo(type) {
@@ -757,21 +715,25 @@
                 payload.value = await hash(val);
             }
             setLoading('btn-update', true);
-            fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) })
-            .then(r => r.json()).then(res => {
+            try {
+                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+                const res = await response.json();
                 if(res.success) { alert("更新しました"); mypageView = 'dashboard'; renderMypage(); }
-            }).finally(() => setLoading('btn-update', false));
+            } catch (e) { alert("エラー"); }
+            setLoading('btn-update', false);
         }
 
         function logout() { 
-            localStorage.removeItem('jump_user'); currentUser = null; mypageView = 'login'; renderMypage(); updateHeader(); initHome(); 
-            cachedData = { 0: null, 1: null, 2: null };
-            cachedLeagueData = { status: null, initialList: null, currentSortList: null, kanto: [], center: [], eventStatus: null };
+            localStorage.removeItem('jump_user'); currentUser = null; mypageView = 'login'; 
+            renderMypage(); updateHeader();
+            // ログアウト後はゲストとして全データを再取得
+            fetchAllData();
         }
 
         window.onload = () => { 
             currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
-            updateHeader(); initHome(); renderMypage(); 
+            updateHeader(); renderMypage(); 
+            fetchAllData(); // 起動時に一括取得
             moveSlider('league', 0);
             moveSlider('data', 0);
             moveSlider('qa', 0);
