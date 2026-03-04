@@ -12,6 +12,8 @@
             --bg-gray: #e9e9f0;
             --text-gray: #888;
             --border-gray: #ccc;
+            --bg-red: #ffcccc;
+            --bg-yellow: #ffffcc;
         }
 
         body {
@@ -31,6 +33,15 @@
         main { flex: 1; overflow-y: auto; position: relative; }
         .page-section { display: none; padding-bottom: 80px; }
         .page-section.active { display: block; }
+
+        /* テーブル共通スタイル */
+        .data-table-container { width: 100%; overflow-x: auto; background: white; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 400px; }
+        th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; white-space: nowrap; }
+        th { background: #f4f4f4; position: sticky; top: 0; z-index: 10; }
+        .col-sticky { position: sticky; left: 0; background: #f9f9f9; z-index: 5; }
+        .bg-red { background-color: var(--bg-red) !important; }
+        .bg-yellow { background-color: var(--bg-yellow) !important; }
 
         .home-container { padding: 15px; display: flex; flex-direction: column; gap: 20px; }
         .notice-card { background: white; border-radius: 12px; padding: 15px; border-left: 6px solid #ffcc00; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
@@ -123,7 +134,7 @@
                 <button class="sub-tab" onclick="moveSlider('data', 2)">みんなの予想</button>
                 <span class="slider"></span>
             </div>
-            <div id="data-content" style="padding:20px; text-align:center;">Data</div>
+            <div id="data-content" class="data-table-container"></div>
         </section>
         <section id="qa" class="page-section">
             <div class="sub-nav-container" id="nav-qa">
@@ -219,7 +230,92 @@
             slider.style.left = `${(tabWidth * index) + 10}px`;
             for (let t of tabs) t.classList.remove('active');
             tabs[index].classList.add('active');
+            
             if(sectionId === 'qa') renderQAContent(index);
+            if(sectionId === 'data') loadDataTab(index);
+        }
+
+        // --- Dataタブ 制御 ---
+        async function loadDataTab(index) {
+            const container = document.getElementById('data-content');
+            container.innerHTML = '<div style="text-align:center; padding:50px;">データを読み込み中...</div>';
+            
+            const actionMap = ['getStatsData', 'getHistoryData', 'getAllPredictions'];
+            try {
+                const response = await fetch(GAS_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify({ action: actionMap[index] }) 
+                });
+                const data = await response.json();
+                
+                if (index === 0) renderStatsTable(data, container);
+                else if (index === 1) renderHistoryTable(data, container);
+                else if (index === 2) renderPredictionTable(data, container);
+                
+            } catch (e) {
+                container.innerHTML = '<div style="text-align:center; padding:50px;">読み込みに失敗しました</div>';
+            }
+        }
+
+        function renderStatsTable(data, container) {
+            let html = '<table><thead><tr><th class="col-sticky">順位</th><th class="col-sticky" style="left:40px;">作品名</th>';
+            data.headers.forEach(h => html += `<th>${h}</th>`);
+            html += '<th>平均</th></tr></thead><tbody>';
+            
+            data.rows.forEach((row, i) => {
+                html += `<tr><td class="col-sticky">${i+1}</td><td class="col-sticky" style="left:40px; text-align:left;">${row.name}</td>`;
+                row.ranks.forEach((r, idx) => {
+                    let cls = "";
+                    if(row.colors[idx] === 1) cls = "bg-red";
+                    else if(row.colors[idx] === 2) cls = "bg-yellow";
+                    html += `<td class="${cls}">${r}</td>`;
+                });
+                html += `<td style="font-weight:bold;">${row.avg}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function renderHistoryTable(data, container) {
+            let html = '<table><thead><tr>';
+            data.columns.forEach(col => html += `<th>${col.label}</th>`);
+            html += '</tr></thead><tbody>';
+            
+            const maxRows = Math.max(...data.columns.map(c => c.list.length));
+            for (let i = 0; i < maxRows; i++) {
+                html += '<tr>';
+                data.columns.forEach(col => {
+                    const item = col.list[i] || "";
+                    let cls = "";
+                    if(col.kanto.includes(item)) cls = "bg-red";
+                    else if(col.center.includes(item)) cls = "bg-yellow";
+                    html += `<td class="${cls}">${item}</td>`;
+                });
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function renderPredictionTable(data, container) {
+            if(!data.columns || data.columns.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:50px;">まだ予想がありません</div>';
+                return;
+            }
+            let html = '<table><thead><tr>';
+            data.columns.forEach(col => html += `<th>${col.userName}</th>`);
+            html += '</tr></thead><tbody>';
+            
+            const maxRows = Math.max(...data.columns.map(c => c.list.length));
+            for (let i = 0; i < maxRows; i++) {
+                html += '<tr>';
+                data.columns.forEach(col => {
+                    html += `<td>${col.list[i] || ""}</td>`;
+                });
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            container.innerHTML = html;
         }
 
         // --- Q&A 制御 ---
