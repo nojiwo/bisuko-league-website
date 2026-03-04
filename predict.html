@@ -24,7 +24,7 @@
             height: 100vh; overflow: hidden;
         }
 
-        header { background-color: var(--header-blue); padding: 20px 0; text-align: center; flex-shrink: 0; }
+        header { background-color: var(--header-blue); padding: 20px 0; text-align: center; flex-shrink: 0; z-index: 100; }
         .user-badge {
             display: inline-block; background-color: #1a3c5e; color: white;
             padding: 8px 35px; border-radius: 30px; border: 2px solid white;
@@ -36,10 +36,14 @@
 
         /* テーブル共通スタイル */
         .data-table-container { width: 100%; overflow-x: auto; background: white; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 400px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 450px; }
         th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; white-space: nowrap; }
-        th { background: #f4f4f4; position: sticky; top: 0; z-index: 10; }
-        .col-sticky { position: sticky; left: 0; background: #f9f9f9; z-index: 5; }
+        th { background: #f4f4f4; position: sticky; top: 0; z-index: 20; }
+        
+        /* Z-index修正: フッター(100)より低く、中身より高く */
+        .col-sticky { position: sticky; left: 0; background: #f9f9f9; z-index: 10; }
+        th.col-sticky { z-index: 30; } 
+
         .bg-red { background-color: var(--bg-red) !important; }
         .bg-yellow { background-color: var(--bg-yellow) !important; }
 
@@ -103,7 +107,7 @@
             background: white; color: red; border-radius: 30px; font-weight: bold; cursor: pointer; 
         }
 
-        footer { position: fixed; bottom: 0; width: 100%; background-color: var(--footer-bg); border-top: 4px solid var(--main-blue); display: flex; padding: 8px 0; }
+        footer { position: fixed; bottom: 0; width: 100%; background-color: var(--footer-bg); border-top: 4px solid var(--main-blue); display: flex; padding: 8px 0; z-index: 100; }
         .nav-item { flex: 1; text-align: center; text-decoration: none; color: var(--text-gray); font-size: 0.7rem; }
         .nav-item.active { color: var(--main-blue); }
         .nav-item img { width: 30px; height: 30px; display: block; margin: 0 auto 2px; }
@@ -162,6 +166,9 @@
         
         let activeSubTabs = { league: 0, data: 0, qa: 0 };
         let cachedInquiryHistory = null;
+        
+        // Dataタブ用キャッシュ
+        let cachedData = { 0: null, 1: null, 2: null };
 
         function showMainPage(pageId, element) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -238,8 +245,14 @@
         // --- Dataタブ 制御 ---
         async function loadDataTab(index) {
             const container = document.getElementById('data-content');
-            container.innerHTML = '<div style="text-align:center; padding:50px;">データを読み込み中...</div>';
             
+            // キャッシュがあれば即表示
+            if (cachedData[index]) {
+                displayData(index, cachedData[index], container);
+                return;
+            }
+
+            container.innerHTML = '<div style="text-align:center; padding:50px;">データを読み込み中...</div>';
             const actionMap = ['getStatsData', 'getHistoryData', 'getAllPredictions'];
             try {
                 const response = await fetch(GAS_URL, { 
@@ -247,14 +260,17 @@
                     body: JSON.stringify({ action: actionMap[index] }) 
                 });
                 const data = await response.json();
-                
-                if (index === 0) renderStatsTable(data, container);
-                else if (index === 1) renderHistoryTable(data, container);
-                else if (index === 2) renderPredictionTable(data, container);
-                
+                cachedData[index] = data; // キャッシュに保存
+                displayData(index, data, container);
             } catch (e) {
                 container.innerHTML = '<div style="text-align:center; padding:50px;">読み込みに失敗しました</div>';
             }
+        }
+
+        function displayData(index, data, container) {
+            if (index === 0) renderStatsTable(data, container);
+            else if (index === 1) renderHistoryTable(data, container);
+            else if (index === 2) renderPredictionTable(data, container);
         }
 
         function renderStatsTable(data, container) {
@@ -266,8 +282,8 @@
                 html += `<tr><td class="col-sticky">${i+1}</td><td class="col-sticky" style="left:40px; text-align:left;">${row.name}</td>`;
                 row.ranks.forEach((r, idx) => {
                     let cls = "";
-                    if(row.colors[idx] === 1) cls = "bg-red";
-                    else if(row.colors[idx] === 2) cls = "bg-yellow";
+                    if(row.colors[idx] == 1) cls = "bg-red";
+                    else if(row.colors[idx] == 2) cls = "bg-yellow";
                     html += `<td class="${cls}">${r}</td>`;
                 });
                 html += `<td style="font-weight:bold;">${row.avg}</td></tr>`;
@@ -298,6 +314,10 @@
         }
 
         function renderPredictionTable(data, container) {
+            if (!data.isOpen) {
+                container.innerHTML = '<div style="text-align:center; padding:50px;">現在受付中です。<br>CLOSE後に公開されます。</div>';
+                return;
+            }
             if(!data.columns || data.columns.length === 0) {
                 container.innerHTML = '<div style="text-align:center; padding:50px;">まだ予想がありません</div>';
                 return;
@@ -310,7 +330,11 @@
             for (let i = 0; i < maxRows; i++) {
                 html += '<tr>';
                 data.columns.forEach(col => {
-                    html += `<td>${col.list[i] || ""}</td>`;
+                    const item = col.list[i] || "";
+                    let cls = "";
+                    if(data.currentKanto.includes(item)) cls = "bg-red";
+                    else if(data.currentCenter.includes(item)) cls = "bg-yellow";
+                    html += `<td class="${cls}">${item}</td>`;
                 });
                 html += '</tr>';
             }
@@ -515,6 +539,8 @@
                     currentUser = { name: res.name, id: res.id };
                     localStorage.setItem('jump_user', JSON.stringify(currentUser));
                     mypageView = 'dashboard'; renderMypage(); updateHeader(); initHome();
+                    // ログインしたらキャッシュクリア
+                    cachedData = { 0: null, 1: null, 2: null };
                 } else { alert("失敗しました"); }
             }).finally(() => setLoading('btn-login', false));
         }
@@ -576,7 +602,10 @@
             }).finally(() => setLoading('btn-update', false));
         }
 
-        function logout() { localStorage.removeItem('jump_user'); currentUser = null; mypageView = 'login'; renderMypage(); updateHeader(); initHome(); }
+        function logout() { 
+            localStorage.removeItem('jump_user'); currentUser = null; mypageView = 'login'; renderMypage(); updateHeader(); initHome(); 
+            cachedData = { 0: null, 1: null, 2: null };
+        }
 
         window.onload = () => { 
             currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
