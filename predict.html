@@ -342,9 +342,22 @@
             container.innerHTML = html;
         }
 
-        // --- Q&A 制御 ---
+        // --- Q&A 制御 (修正済み) ---
         function renderQAContent(index) {
             const container = document.getElementById('qa-content');
+            
+            // ログインガード追加
+            if (!currentUser) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:50px; color:#666;">
+                        <p>お問い合わせにはログインが必要です。</p>
+                        <button class="primary-btn" style="width:200px; margin:0 auto;" onclick="showMainPage('mypage', document.querySelector('[data-type=\\'mypage\\']'))">
+                            ログイン画面へ
+                        </button>
+                    </div>`;
+                return;
+            }
+
             if (index === 0) {
                 container.innerHTML = `
                     <div class="auth-container" style="padding:0; gap:10px;">
