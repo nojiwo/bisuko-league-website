@@ -60,9 +60,7 @@
         }
 
         .auth-container { padding: 20px; display: flex; flex-direction: column; gap: 15px; text-align: center; }
-        .auth-container input, .auth-container select, .auth-container textarea { 
-            padding: 12px; border-radius: 8px; border: 1px solid var(--border-gray); font-size: 1rem; width: 100%; box-sizing: border-box; 
-        }
+        .auth-container input, .auth-container select, .auth-container textarea { padding: 12px; border-radius: 8px; border: 1px solid var(--border-gray); font-size: 1rem; width: 100%; box-sizing: border-box; }
         
         .pw-toggle-area { text-align: left; font-size: 0.8rem; color: #555; display: flex; align-items: center; gap: 8px; margin-top: -5px; }
         .pw-toggle-area input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; }
@@ -88,14 +86,13 @@
         .list-item { background: #d9d9d9; border-bottom: 1px solid #bbb; padding: 18px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .list-item.no-arrow { cursor: default; }
         .list-item span { color: #666; font-size: 1.2rem; font-weight: bold; }
-        
         .logout-btn-container { padding: 30px 20px; text-align: center; }
         .logout-btn { 
             display: inline-block; width: 220px; padding: 12px; border: 2px solid red; 
             background: white; color: red; border-radius: 30px; font-weight: bold; cursor: pointer; 
         }
 
-        footer { position: fixed; bottom: 0; width: 100%; background-color: var(--footer-bg); border-top: 4px solid var(--main-blue); display: flex; padding: 8px 0; z-index: 100; }
+        footer { position: fixed; bottom: 0; width: 100%; background-color: var(--footer-bg); border-top: 4px solid var(--main-blue); display: flex; padding: 8px 0; }
         .nav-item { flex: 1; text-align: center; text-decoration: none; color: var(--text-gray); font-size: 0.7rem; }
         .nav-item.active { color: var(--main-blue); }
         .nav-item img { width: 30px; height: 30px; display: block; margin: 0 auto 2px; }
@@ -111,16 +108,14 @@
                 <div style="text-align:center; padding:50px;">同期中...</div>
             </div>
         </section>
-
         <section id="league" class="page-section">
             <div class="sub-nav-container" id="nav-league">
                 <button class="sub-tab" onclick="moveSlider('league', 0)">予想提出</button>
                 <button class="sub-tab" onclick="moveSlider('league', 1)">予選参加希望</button>
                 <span class="slider"></span>
             </div>
-            <div id="league-content" style="padding:20px; text-align:center;">League Content</div>
+            <div id="league-content" style="padding:20px; text-align:center;">League</div>
         </section>
-
         <section id="data" class="page-section">
             <div class="sub-nav-container" id="nav-data">
                 <button class="sub-tab" onclick="moveSlider('data', 0)">8週統計</button>
@@ -128,9 +123,8 @@
                 <button class="sub-tab" onclick="moveSlider('data', 2)">みんなの予想</button>
                 <span class="slider"></span>
             </div>
-            <div id="data-content" style="padding:20px; text-align:center;">Data Content</div>
+            <div id="data-content" style="padding:20px; text-align:center;">Data</div>
         </section>
-
         <section id="qa" class="page-section">
             <div class="sub-nav-container" id="nav-qa">
                 <button class="sub-tab" onclick="moveSlider('qa', 0)">問い合わせ</button>
@@ -139,10 +133,7 @@
             </div>
             <div id="qa-content" style="padding:15px;"></div>
         </section>
-
-        <section id="mypage" class="page-section">
-            <div id="mypage-container"></div>
-        </section>
+        <section id="mypage" class="page-section"><div id="mypage-container"></div></section>
     </main>
 
     <footer>
@@ -157,13 +148,9 @@
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxWbCA7gRrqyTr1Ti_CEeB_9fZHbzrC7TFJlYJLTEa2xBVEtleC2vR1NXdLufw3okJj/exec";
         let currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
         let mypageView = currentUser ? 'dashboard' : 'login';
-
-        // 各メインタブの「現在のサブタブ番号」を保持する
-        let activeSubTabs = {
-            league: 0,
-            data: 0,
-            qa: 0
-        };
+        
+        let activeSubTabs = { league: 0, data: 0, qa: 0 };
+        let cachedInquiryHistory = null; // 履歴キャッシュ用
 
         function showMainPage(pageId, element) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -171,12 +158,17 @@
             
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
-                const text = item.innerText.toLowerCase().trim().replace('&', '');
-                item.querySelector('img').src = `icon-g-${text}.svg`;
+                // アイコン文字列の整形。Q&AとMy Pageは明示的に指定
+                let type = item.innerText.toLowerCase().trim();
+                if(type === 'q&a') type = 'qa';
+                if(type === 'my page') type = 'mypage';
+                item.querySelector('img').src = `icon-g-${type}.svg`;
             });
             element.classList.add('active');
-            const activeText = element.innerText.toLowerCase().trim().replace('&', '');
-            element.querySelector('img').src = `icon-b-${activeText}.svg`;
+            let activeType = element.innerText.toLowerCase().trim();
+            if(activeType === 'q&a') activeType = 'qa';
+            if(activeType === 'my page') activeType = 'mypage';
+            element.querySelector('img').src = `icon-b-${activeType}.svg`;
             
             if(pageId === 'home') initHome();
             if(pageId === 'league') moveSlider('league', activeSubTabs.league);
@@ -224,7 +216,6 @@
         function moveSlider(sectionId, index) {
             const container = document.getElementById(`nav-${sectionId}`);
             if (!container) return;
-
             activeSubTabs[sectionId] = index;
 
             const tabs = container.getElementsByClassName('sub-tab');
@@ -240,11 +231,11 @@
             if(sectionId === 'qa') renderQAContent(index);
             else {
                 const content = document.getElementById(`${sectionId}-content`);
-                if(content) content.innerText = `${sectionId} - Tab ${index + 1} の内容を表示予定`;
+                if(content) content.innerText = `${sectionId} - Tab ${index + 1} 内容`;
             }
         }
 
-        // --- Q&A 表示ロジック ---
+        // --- Q&A 制御 ---
         function renderQAContent(index) {
             const container = document.getElementById('qa-content');
             if (index === 0) {
@@ -261,9 +252,9 @@
                             <div class="spinner"></div> <span>送信する</span>
                         </button>
                     </div>`;
-            } else {
-                container.innerHTML = '<div style="text-align:center; padding:20px;">履歴を読み込み中...</div>';
-                loadInquiryHistory();
+            } else if (index === 1) {
+                if (cachedInquiryHistory) displayInquiryHistory();
+                else loadInquiryHistory();
             }
         }
 
@@ -272,50 +263,69 @@
             const category = document.getElementById('qa-category').value;
             const body = document.getElementById('qa-body').value;
             if(!body) return alert("内容を入力してください");
-
             setLoading('btn-qa-send', true);
             try {
-                const response = await fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "sendInquiry", userId: currentUser.id, category: category, content: body })
-                });
+                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "sendInquiry", userId: currentUser.id, category, content: body }) });
                 const res = await response.json();
                 if(res.success) {
                     alert("送信が完了しました");
                     document.getElementById('qa-body').value = "";
-                } else { alert("送信に失敗しました"); }
-            } catch (e) { alert("エラーが発生しました"); }
+                    cachedInquiryHistory = null; // 送信後はキャッシュクリアして再取得させる
+                } else { alert("失敗しました"); }
+            } catch (e) { alert("エラー"); }
             setLoading('btn-qa-send', false);
         }
 
         async function loadInquiryHistory() {
-            const container = document.getElementById('qa-content');
+            document.getElementById('qa-content').innerHTML = '<div style="text-align:center; padding:20px;">履歴を読み込み中...</div>';
             try {
                 const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getInquiryHistory" }) });
-                const data = await response.json();
-                if(!data || data.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; padding:20px;">履歴はありません</div>';
-                    return;
-                }
-                let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
-                data.forEach(item => {
-                    const statusClass = item.answer ? 'ok' : 'ng';
-                    const statusText = item.answer ? '回答済み' : '未回答';
-                    html += `
-                        <div class="status-card" style="padding:15px; cursor:pointer;" onclick="alert('【内容】\\n${item.content}\\n\\n【回答】\\n${item.answer || '未回答です'}')">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                <span style="font-weight:bold; font-size:0.85rem; color:var(--main-blue);">${item.category}</span>
-                                <span style="font-size:0.75rem; color:#888;">${item.timestamp}</span>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-size:0.85rem; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">${item.content}</span>
-                                <span class="status-value ${statusClass}" style="font-size:0.75rem;">${statusText}</span>
-                            </div>
-                        </div>`;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-            } catch (e) { container.innerHTML = '<div style="text-align:center; padding:20px;">読み込み失敗</div>'; }
+                cachedInquiryHistory = await response.json();
+                displayInquiryHistory();
+            } catch (e) { document.getElementById('qa-content').innerHTML = '読み込み失敗'; }
+        }
+
+        function displayInquiryHistory() {
+            const container = document.getElementById('qa-content');
+            if(!cachedInquiryHistory || cachedInquiryHistory.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px;">履歴はありません</div>';
+                return;
+            }
+            let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+            cachedInquiryHistory.forEach((item, idx) => {
+                const statusClass = item.answer ? 'ok' : 'ng';
+                const statusText = item.answer ? '回答済み' : '未回答';
+                html += `
+                    <div class="status-card" style="padding:15px; cursor:pointer;" onclick="showInquiryDetail(${idx})">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span style="font-weight:bold; font-size:0.85rem; color:var(--main-blue);">${item.category}</span>
+                            <span style="font-size:0.75rem; color:#888;">${item.timestamp}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.85rem; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">${item.content}</span>
+                            <span class="status-value ${statusClass}" style="font-size:0.75rem;">${statusText}</span>
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html + '</div>';
+        }
+
+        function showInquiryDetail(idx) {
+            const item = cachedInquiryHistory[idx];
+            const container = document.getElementById('qa-content');
+            container.innerHTML = `
+                <div style="padding: 10px;">
+                    <h3 style="margin-top:0;">問い合わせ詳細</h3>
+                    <div class="status-card" style="padding:15px; background:#f9f9f9;">
+                        <p style="font-size:0.8rem; color:#888; margin:0 0 5px;">【要件】 ${item.category}</p>
+                        <p style="font-size:0.9rem; font-weight:bold; margin:0 0 15px; white-space:pre-wrap;">${item.content}</p>
+                        <div style="border-top:1px solid #eee; padding-top:15px;">
+                            <p style="font-size:0.8rem; color:var(--main-blue); margin:0 0 5px;">【回答】</p>
+                            <p style="font-size:0.9rem; color:#333; white-space:pre-wrap;">${item.answer || '回答をお待ちください。'}</p>
+                        </div>
+                    </div>
+                    <div class="auth-sub-links"><span onclick="displayInquiryHistory()">履歴一覧に戻る</span></div>
+                </div>`;
         }
 
         // --- ユーザー認証 & MyPage ---
@@ -390,13 +400,11 @@
         }
 
         function togglePw(id) { const el = document.getElementById(id); if(el) el.type = el.type === 'password' ? 'text' : 'password'; }
-
         async function hash(pw) {
             const msg = new TextEncoder().encode(pw);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msg);
             return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
-
         function setLoading(btnId, isLoading) {
             const btn = document.getElementById(btnId); if(!btn) return;
             const spinner = btn.querySelector('.spinner'); const text = btn.querySelector('span');
@@ -453,7 +461,7 @@
         async function updateInfo(type) {
             const val = document.getElementById('new-val').value;
             if(!val) return alert("入力してください");
-            let payload = { action: "update", id: currentUser.id, type: type, value: val };
+            let payload = { action: "update", id: currentUser.id, type, value: val };
             if(type === 'pass') {
                 const conf = document.getElementById('new-val-confirm').value;
                 if(val !== conf) return alert("一致しません");
@@ -472,7 +480,6 @@
         window.onload = () => { 
             currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
             updateHeader(); initHome(); renderMypage(); 
-            // 初期スライダー
             moveSlider('league', 0);
             moveSlider('data', 0);
             moveSlider('qa', 0);
