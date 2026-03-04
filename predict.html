@@ -21,7 +21,7 @@
             font-family: sans-serif;
             background-color: var(--bg-gray);
             display: flex; flex-direction: column;
-            height: 100vh; overflow: hidden;
+            height: 100vh; overflow: hidden; /* 全体スクロールを防止 */
         }
 
         header { background-color: var(--header-blue); padding: 20px 0; text-align: center; flex-shrink: 0; z-index: 100; }
@@ -30,19 +30,40 @@
             padding: 8px 35px; border-radius: 30px; border: 2px solid white;
         }
 
-        main { flex: 1; overflow-y: auto; position: relative; }
-        .page-section { display: none; padding-bottom: 80px; }
-        .page-section.active { display: block; }
+        /* メインエリアのレイアウト修正 */
+        main { flex: 1; position: relative; overflow: hidden; }
+        
+        .page-section { 
+            display: none; 
+            height: 100%; 
+            flex-direction: column; 
+        }
+        .page-section.active { display: flex; }
+
+        /* コンテンツエリアのみをスクロールさせる */
+        .section-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 80px; /* フッターとの重なり防止 */
+        }
 
         /* テーブル共通スタイル */
-        .data-table-container { width: 100%; overflow-x: auto; background: white; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 450px; }
+        .data-table-container { width: 100%; background: white; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; min-width: 450px; }
         th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; white-space: nowrap; }
-        th { background: #f4f4f4; position: sticky; top: 0; z-index: 20; }
         
-        /* Z-index修正: フッター(100)より低く、中身より高く */
+        /* テーブルヘッダー固定の修正 */
+        thead th { 
+            background: #f4f4f4; 
+            position: sticky; 
+            top: 0; 
+            z-index: 25; 
+            border-top: none;
+        }
+        
         .col-sticky { position: sticky; left: 0; background: #f9f9f9; z-index: 10; }
-        th.col-sticky { z-index: 30; } 
+        thead th.col-sticky { z-index: 30; top: 0; } 
 
         .bg-red { background-color: var(--bg-red) !important; }
         .bg-yellow { background-color: var(--bg-yellow) !important; }
@@ -63,6 +84,7 @@
         .sub-nav-container {
             background-color: #333; position: relative; display: flex;
             height: 60px; padding: 0 10px; align-items: center; border-bottom: 2px solid #555;
+            flex-shrink: 0; z-index: 50;
         }
         .sub-tab {
             flex: 1; color: var(--text-gray); border: none; background: none;
@@ -119,18 +141,24 @@
 
     <main>
         <section id="home" class="page-section active">
-            <div class="home-container" id="home-content">
-                <div style="text-align:center; padding:50px;">同期中...</div>
+            <div class="section-content">
+                <div class="home-container" id="home-content">
+                    <div style="text-align:center; padding:50px;">同期中...</div>
+                </div>
             </div>
         </section>
+
         <section id="league" class="page-section">
             <div class="sub-nav-container" id="nav-league">
                 <button class="sub-tab" onclick="moveSlider('league', 0)">予想提出</button>
                 <button class="sub-tab" onclick="moveSlider('league', 1)">予選参加希望</button>
                 <span class="slider"></span>
             </div>
-            <div id="league-content" style="padding:20px; text-align:center;">League</div>
+            <div class="section-content">
+                <div id="league-content" style="padding:20px; text-align:center;">League</div>
+            </div>
         </section>
+
         <section id="data" class="page-section">
             <div class="sub-nav-container" id="nav-data">
                 <button class="sub-tab" onclick="moveSlider('data', 0)">8週統計</button>
@@ -138,17 +166,27 @@
                 <button class="sub-tab" onclick="moveSlider('data', 2)">みんなの予想</button>
                 <span class="slider"></span>
             </div>
-            <div id="data-content" class="data-table-container"></div>
+            <div class="section-content">
+                <div id="data-content" class="data-table-container"></div>
+            </div>
         </section>
+
         <section id="qa" class="page-section">
             <div class="sub-nav-container" id="nav-qa">
                 <button class="sub-tab" onclick="moveSlider('qa', 0)">問い合わせ</button>
                 <button class="sub-tab" onclick="moveSlider('qa', 1)">履歴</button>
                 <span class="slider"></span>
             </div>
-            <div id="qa-content" style="padding:15px;"></div>
+            <div class="section-content">
+                <div id="qa-content" style="padding:15px;"></div>
+            </div>
         </section>
-        <section id="mypage" class="page-section"><div id="mypage-container"></div></section>
+
+        <section id="mypage" class="page-section">
+            <div class="section-content">
+                <div id="mypage-container"></div>
+            </div>
+        </section>
     </main>
 
     <footer>
@@ -166,8 +204,6 @@
         
         let activeSubTabs = { league: 0, data: 0, qa: 0 };
         let cachedInquiryHistory = null;
-        
-        // Dataタブ用キャッシュ
         let cachedData = { 0: null, 1: null, 2: null };
 
         function showMainPage(pageId, element) {
@@ -242,29 +278,17 @@
             if(sectionId === 'data') loadDataTab(index);
         }
 
-        // --- Dataタブ 制御 ---
         async function loadDataTab(index) {
             const container = document.getElementById('data-content');
-            
-            // キャッシュがあれば即表示
-            if (cachedData[index]) {
-                displayData(index, cachedData[index], container);
-                return;
-            }
-
+            if (cachedData[index]) { displayData(index, cachedData[index], container); return; }
             container.innerHTML = '<div style="text-align:center; padding:50px;">データを読み込み中...</div>';
             const actionMap = ['getStatsData', 'getHistoryData', 'getAllPredictions'];
             try {
-                const response = await fetch(GAS_URL, { 
-                    method: "POST", 
-                    body: JSON.stringify({ action: actionMap[index] }) 
-                });
+                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: actionMap[index] }) });
                 const data = await response.json();
-                cachedData[index] = data; // キャッシュに保存
+                cachedData[index] = data;
                 displayData(index, data, container);
-            } catch (e) {
-                container.innerHTML = '<div style="text-align:center; padding:50px;">読み込みに失敗しました</div>';
-            }
+            } catch (e) { container.innerHTML = '<div style="text-align:center; padding:50px;">読み込みに失敗しました</div>'; }
         }
 
         function displayData(index, data, container) {
@@ -277,7 +301,6 @@
             let html = '<table><thead><tr><th class="col-sticky">順位</th><th class="col-sticky" style="left:40px;">作品名</th>';
             data.headers.forEach(h => html += `<th>${h}</th>`);
             html += '<th>平均</th></tr></thead><tbody>';
-            
             data.rows.forEach((row, i) => {
                 html += `<tr><td class="col-sticky">${i+1}</td><td class="col-sticky" style="left:40px; text-align:left;">${row.name}</td>`;
                 row.ranks.forEach((r, idx) => {
@@ -296,7 +319,6 @@
             let html = '<table><thead><tr>';
             data.columns.forEach(col => html += `<th>${col.label}</th>`);
             html += '</tr></thead><tbody>';
-            
             const maxRows = Math.max(...data.columns.map(c => c.list.length));
             for (let i = 0; i < maxRows; i++) {
                 html += '<tr>';
@@ -325,7 +347,6 @@
             let html = '<table><thead><tr>';
             data.columns.forEach(col => html += `<th>${col.userName}</th>`);
             html += '</tr></thead><tbody>';
-            
             const maxRows = Math.max(...data.columns.map(c => c.list.length));
             for (let i = 0; i < maxRows; i++) {
                 html += '<tr>';
@@ -342,37 +363,15 @@
             container.innerHTML = html;
         }
 
-        // --- Q&A 制御 (修正済み) ---
         function renderQAContent(index) {
             const container = document.getElementById('qa-content');
-            
-            // ログインガード追加
             if (!currentUser) {
-                container.innerHTML = `
-                    <div style="text-align:center; padding:50px; color:#666;">
-                        <p>お問い合わせにはログインが必要です。</p>
-                        <button class="primary-btn" style="width:200px; margin:0 auto;" onclick="showMainPage('mypage', document.querySelector('[data-type=\\'mypage\\']'))">
-                            ログイン画面へ
-                        </button>
-                    </div>`;
+                container.innerHTML = `<div style="text-align:center; padding:50px; color:#666;"><p>お問い合わせにはログインが必要です。</p><button class="primary-btn" style="width:200px; margin:0 auto;" onclick="showMainPage('mypage', document.querySelector('[data-type=\\'mypage\\']'))">ログイン画面へ</button></div>`;
                 return;
             }
-
             if (index === 0) {
-                container.innerHTML = `
-                    <div class="auth-container" style="padding:0; gap:10px;">
-                        <p style="text-align:left; font-size:0.9rem; margin:10px 0 5px;">要件を選択してください</p>
-                        <select id="qa-category">
-                            <option value="不具合の報告">不具合の報告</option>
-                            <option value="サイトの使用方法について">サイトの使用方法について</option>
-                            <option value="その他">その他</option>
-                        </select>
-                        <textarea id="qa-body" placeholder="内容を入力してください" style="height:150px;"></textarea>
-                        <button class="primary-btn" id="btn-qa-send" onclick="sendInquiry()">
-                            <div class="spinner"></div> <span>送信する</span>
-                        </button>
-                    </div>`;
-            } else if (index === 1) {
+                container.innerHTML = `<div class="auth-container" style="padding:0; gap:10px;"><p style="text-align:left; font-size:0.9rem; margin:10px 0 5px;">要件を選択してください</p><select id="qa-category"><option value="不具合の報告">不具合の報告</option><option value="サイトの使用方法について">サイトの使用方法について</option><option value="その他">その他</option></select><textarea id="qa-body" placeholder="内容を入力してください" style="height:150px;"></textarea><button class="primary-btn" id="btn-qa-send" onclick="sendInquiry()"><div class="spinner"></div> <span>送信する</span></button></div>`;
+            } else {
                 if (cachedInquiryHistory) displayInquiryHistory();
                 else loadInquiryHistory();
             }
@@ -387,11 +386,8 @@
             try {
                 const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "sendInquiry", userId: currentUser.id, category, content: body }) });
                 const res = await response.json();
-                if(res.success) {
-                    alert("送信が完了しました");
-                    document.getElementById('qa-body').value = "";
-                    cachedInquiryHistory = null;
-                } else { alert("失敗しました"); }
+                if(res.success) { alert("送信が完了しました"); document.getElementById('qa-body').value = ""; cachedInquiryHistory = null; }
+                else { alert("失敗しました"); }
             } catch (e) { alert("エラー"); }
             setLoading('btn-qa-send', false);
         }
@@ -407,138 +403,45 @@
 
         function displayInquiryHistory() {
             const container = document.getElementById('qa-content');
-            if(!cachedInquiryHistory || cachedInquiryHistory.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:20px;">履歴はありません</div>';
-                return;
-            }
+            if(!cachedInquiryHistory || cachedInquiryHistory.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px;">履歴はありません</div>'; return; }
             let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
             cachedInquiryHistory.forEach((item, idx) => {
                 const statusClass = item.answer ? 'ok' : 'ng';
-                const statusText = item.answer ? '回答済み' : '未回答';
-                html += `
-                    <div class="status-card" style="padding:15px; cursor:pointer;" onclick="showInquiryDetail(${idx})">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                            <span style="font-weight:bold; font-size:0.85rem; color:var(--main-blue);">${item.category}</span>
-                            <span style="font-size:0.75rem; color:#888;">${item.timestamp}</span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:0.85rem; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">${item.content}</span>
-                            <span class="status-value ${statusClass}" style="font-size:0.75rem;">${statusText}</span>
-                        </div>
-                    </div>`;
+                html += `<div class="status-card" style="padding:15px; cursor:pointer;" onclick="showInquiryDetail(${idx})"><div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span style="font-weight:bold; font-size:0.85rem; color:var(--main-blue);">${item.category}</span><span style="font-size:0.75rem; color:#888;">${item.timestamp}</span></div><div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:0.85rem; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">${item.content}</span><span class="status-value ${statusClass}" style="font-size:0.75rem;">${item.answer ? '回答済み' : '未回答'}</span></div></div>`;
             });
             container.innerHTML = html + '</div>';
         }
 
         function showInquiryDetail(idx) {
             const item = cachedInquiryHistory[idx];
-            const container = document.getElementById('qa-content');
-            container.innerHTML = `
-                <div style="padding: 10px;">
-                    <h3 style="margin-top:0;">問い合わせ詳細</h3>
-                    <div class="status-card" style="padding:15px; background:#f9f9f9;">
-                        <p style="font-size:0.8rem; color:#888; margin:0 0 5px;">【要件】 ${item.category}</p>
-                        <p style="font-size:0.9rem; font-weight:bold; margin:0 0 15px; white-space:pre-wrap;">${item.content}</p>
-                        <div style="border-top:1px solid #eee; padding-top:15px;">
-                            <p style="font-size:0.8rem; color:var(--main-blue); margin:0 0 5px;">【回答】</p>
-                            <p style="font-size:0.9rem; color:#333; white-space:pre-wrap;">${item.answer || '回答をお待ちください。'}</p>
-                        </div>
-                    </div>
-                    <div class="auth-sub-links"><span onclick="displayInquiryHistory()">履歴一覧に戻る</span></div>
-                </div>`;
+            document.getElementById('qa-content').innerHTML = `<div style="padding: 10px;"><h3 style="margin-top:0;">問い合わせ詳細</h3><div class="status-card" style="padding:15px; background:#f9f9f9;"><p style="font-size:0.8rem; color:#888; margin:0 0 5px;">【要件】 ${item.category}</p><p style="font-size:0.9rem; font-weight:bold; margin:0 0 15px; white-space:pre-wrap;">${item.content}</p><div style="border-top:1px solid #eee; padding-top:15px;"><p style="font-size:0.8rem; color:var(--main-blue); margin:0 0 5px;">【回答】</p><p style="font-size:0.9rem; color:#333; white-space:pre-wrap;">${item.answer || '回答をお待ちください。'}</p></div></div><div class="auth-sub-links"><span onclick="displayInquiryHistory()">履歴一覧に戻る</span></div></div>`;
         }
 
-        // --- ユーザー認証 & MyPage ---
-        function updateHeader() {
-            document.querySelector('.user-badge').innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん';
-        }
+        function updateHeader() { document.querySelector('.user-badge').innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん'; }
 
         function renderMypage() {
             const container = document.getElementById('mypage-container');
             if (mypageView === 'login') {
-                container.innerHTML = `
-                    <div class="auth-container">
-                        <input type="text" id="l-name" placeholder="ユーザー名">
-                        <input type="password" id="l-pw" placeholder="パスワード">
-                        <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('l-pw')"> パスワードを表示</div>
-                        <button class="primary-btn" id="btn-login" onclick="login()"><div class="spinner"></div> <span>ログイン</span></button>
-                        <div class="auth-sub-links">
-                            <span onclick="mypageView='signup';renderMypage()">新規登録はこちら</span>
-                            <span onclick="mypageView='reset';renderMypage()">パスワードを忘れた方はこちら</span>
-                        </div>
-                    </div>`;
+                container.innerHTML = `<div class="auth-container"><input type="text" id="l-name" placeholder="ユーザー名"><input type="password" id="l-pw" placeholder="パスワード"><div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('l-pw')"> パスワードを表示</div><button class="primary-btn" id="btn-login" onclick="login()"><div class="spinner"></div> <span>ログイン</span></button><div class="auth-sub-links"><span onclick="mypageView='signup';renderMypage()">新規登録はこちら</span><span onclick="mypageView='reset';renderMypage()">パスワードを忘れた方はこちら</span></div></div>`;
             } else if (mypageView === 'signup') {
-                container.innerHTML = `
-                    <div class="auth-container">
-                        <div style="text-align:left; font-size:0.8rem; color:#555; background:#fff; padding:15px; border-radius:10px; border:1px solid #ddd; line-height:1.4;">
-                            <strong style="color:var(--main-blue);">ユーザー名について：</strong><br>
-                            メールアドレスではありません。動画内での結果発表等で使用される名前を<strong>8文字以内</strong>で設定してください。<br><br>
-                            <strong style="color:var(--main-blue);">秘密のキーワードについて：</strong><br>
-                            パスワードを忘れた際の再設定に使用します。好きな作品名など、覚えやすいものにしてください。
-                        </div>
-                        <input type="text" id="s-name" placeholder="ユーザー名 (8文字以内)" maxlength="8">
-                        <input type="password" id="s-pw" placeholder="パスワード">
-                        <input type="password" id="s-pwc" placeholder="パスワード再確認">
-                        <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('s-pw');togglePw('s-pwc')"> パスワードを表示</div>
-                        <input type="text" id="s-key" placeholder="秘密のキーワード">
-                        <button class="primary-btn" id="btn-signup" onclick="signup()"><div class="spinner"></div> <span>新規登録</span></button>
-                        <div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div>
-                    </div>`;
+                container.innerHTML = `<div class="auth-container"><div style="text-align:left; font-size:0.8rem; color:#555; background:#fff; padding:15px; border-radius:10px; border:1px solid #ddd; line-height:1.4;"><strong style="color:var(--main-blue);">ユーザー名について：</strong><br>メールアドレスではありません。動画内での結果発表等で使用される名前を<strong>8文字以内</strong>で設定してください。<br><br><strong style="color:var(--main-blue);">秘密のキーワードについて：</strong><br>パスワードを忘れた際の再設定に使用します。好きな作品名など、覚えやすいものにしてください。</div><input type="text" id="s-name" placeholder="ユーザー名 (8文字以内)" maxlength="8"><input type="password" id="s-pw" placeholder="パスワード"><input type="password" id="s-pwc" placeholder="パスワード再確認"><div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('s-pw');togglePw('s-pwc')"> パスワードを表示</div><input type="text" id="s-key" placeholder="秘密のキーワード"><button class="primary-btn" id="btn-signup" onclick="signup()"><div class="spinner"></div> <span>新規登録</span></button><div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div></div>`;
             } else if (mypageView === 'reset') {
-                container.innerHTML = `
-                    <div class="auth-container">
-                        <input type="text" id="r-name" placeholder="ユーザー名">
-                        <input type="text" id="r-key" placeholder="秘密のキーワード">
-                        <input type="password" id="r-pw" placeholder="新パスワード">
-                        <input type="password" id="r-pwc" placeholder="新パスワード再確認">
-                        <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('r-pw');togglePw('r-pwc')"> パスワードを表示</div>
-                        <button class="primary-btn" id="btn-reset" onclick="resetPw()"><div class="spinner"></div> <span>更新</span></button>
-                        <div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div>
-                    </div>`;
+                container.innerHTML = `<div class="auth-container"><input type="text" id="r-name" placeholder="ユーザー名"><input type="text" id="r-key" placeholder="秘密のキーワード"><input type="password" id="r-pw" placeholder="新パスワード"><input type="password" id="r-pwc" placeholder="新パスワード再確認"><div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('r-pw');togglePw('r-pwc')"> パスワードを表示</div><button class="primary-btn" id="btn-reset" onclick="resetPw()"><div class="spinner"></div> <span>更新</span></button><div class="auth-sub-links"><span onclick="mypageView='login';renderMypage()">戻る</span></div></div>`;
             } else if (mypageView === 'dashboard') {
-                container.innerHTML = `
-                    <div class="group-label">ユーザー情報</div>
-                    <div class="list-item no-arrow">ユーザー名 <span style="font-size:0.9rem; color:#888;">${currentUser.name}</span></div>
-                    <div class="list-item no-arrow">ユーザーID <span style="font-size:0.9rem; color:#888;">${currentUser.id}</span></div>
-                    <div class="list-item" onclick="mypageView='edit_pass';renderMypage()">パスワード <span>＞</span></div>
-                    <div class="list-item" onclick="mypageView='edit_key';renderMypage()">秘密のキーワード <span>＞</span></div>
-                    <div class="group-label">個人成績</div>
-                    <div class="list-item" onclick="alert('成績画面は後ほど！')">過去の成績 <span>＞</span></div>
-                    <div class="logout-btn-container"><button class="logout-btn" onclick="logout()">ログアウト</button></div>`;
-            } else if (mypageView.startsWith('edit_')) {
-                renderEditView(container);
-            }
+                container.innerHTML = `<div class="group-label">ユーザー情報</div><div class="list-item no-arrow">ユーザー名 <span style="font-size:0.9rem; color:#888;">${currentUser.name}</span></div><div class="list-item no-arrow">ユーザーID <span style="font-size:0.9rem; color:#888;">${currentUser.id}</span></div><div class="list-item" onclick="mypageView='edit_pass';renderMypage()">パスワード <span>＞</span></div><div class="list-item" onclick="mypageView='edit_key';renderMypage()">秘密のキーワード <span>＞</span></div><div class="group-label">個人成績</div><div class="list-item" onclick="alert('成績画面は後ほど！')">過去の成績 <span>＞</span></div><div class="logout-btn-container"><button class="logout-btn" onclick="logout()">ログアウト</button></div>`;
+            } else if (mypageView.startsWith('edit_')) { renderEditView(container); }
         }
 
         function renderEditView(container) {
             const type = mypageView.replace('edit_', '');
-            let title = "", inputHtml = "";
-            if (type === 'pass') {
-                title = "パスワードの変更";
-                inputHtml = `<input type="password" id="new-val" placeholder="新しいパスワード">
-                    <input type="password" id="new-val-confirm" placeholder="パスワード再確認">
-                    <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('new-val');togglePw('new-val-confirm')"> パスワードを表示</div>`;
-            } else if (type === 'key') {
-                title = "秘密のキーワードの変更";
-                inputHtml = `<input type="text" id="new-val" placeholder="新しい秘密のキーワード">`;
-            }
-            container.innerHTML = `<div style="padding: 20px;"><h3 style="margin-top:0;">${title}</h3>
-                <div class="auth-container" style="padding:0;">${inputHtml}
-                <button class="primary-btn" id="btn-update" onclick="updateInfo('${type}')"><div class="spinner"></div> <span>変更を保存する</span></button>
-                <div class="auth-sub-links"><span onclick="mypageView='dashboard';renderMypage()">キャンセル</span></div></div></div>`;
+            let title = (type === 'pass') ? "パスワードの変更" : "秘密のキーワードの変更";
+            let inputHtml = (type === 'pass') ? `<input type="password" id="new-val" placeholder="新しいパスワード"><input type="password" id="new-val-confirm" placeholder="パスワード再確認"><div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('new-val');togglePw('new-val-confirm')"> パスワードを表示</div>` : `<input type="text" id="new-val" placeholder="新しい秘密のキーワード">`;
+            container.innerHTML = `<div style="padding: 20px;"><h3 style="margin-top:0;">${title}</h3><div class="auth-container" style="padding:0;">${inputHtml}<button class="primary-btn" id="btn-update" onclick="updateInfo('${type}')"><div class="spinner"></div> <span>変更を保存する</span></button><div class="auth-sub-links"><span onclick="mypageView='dashboard';renderMypage()">キャンセル</span></div></div></div>`;
         }
 
         function togglePw(id) { const el = document.getElementById(id); if(el) el.type = el.type === 'password' ? 'text' : 'password'; }
-        async function hash(pw) {
-            const msg = new TextEncoder().encode(pw);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msg);
-            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-        function setLoading(btnId, isLoading) {
-            const btn = document.getElementById(btnId); if(!btn) return;
-            const spinner = btn.querySelector('.spinner'); const text = btn.querySelector('span');
-            btn.disabled = isLoading; spinner.style.display = isLoading ? 'block' : 'none'; text.style.opacity = isLoading ? '0.5' : '1';
-        }
+        async function hash(pw) { const msg = new TextEncoder().encode(pw); const hashBuffer = await crypto.subtle.digest('SHA-256', msg); return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join(''); }
+        function setLoading(btnId, isLoading) { const btn = document.getElementById(btnId); if(!btn) return; const spinner = btn.querySelector('.spinner'); const text = btn.querySelector('span'); btn.disabled = isLoading; spinner.style.display = isLoading ? 'block' : 'none'; text.style.opacity = isLoading ? '0.5' : '1'; }
 
         async function login() {
             const name = document.getElementById('l-name').value;
@@ -548,13 +451,8 @@
             const hashedPw = await hash(passInput);
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", name, pw: hashedPw }) })
             .then(r => r.json()).then(res => {
-                if(res.success) {
-                    currentUser = { name: res.name, id: res.id };
-                    localStorage.setItem('jump_user', JSON.stringify(currentUser));
-                    mypageView = 'dashboard'; renderMypage(); updateHeader(); initHome();
-                    // ログインしたらキャッシュクリア
-                    cachedData = { 0: null, 1: null, 2: null };
-                } else { alert("失敗しました"); }
+                if(res.success) { currentUser = { name: res.name, id: res.id }; localStorage.setItem('jump_user', JSON.stringify(currentUser)); mypageView = 'dashboard'; renderMypage(); updateHeader(); initHome(); cachedData = { 0: null, 1: null, 2: null }; }
+                else { alert("失敗しました"); }
             }).finally(() => setLoading('btn-login', false));
         }
 
@@ -563,24 +461,13 @@
             const pwRaw = document.getElementById('s-pw').value;
             const pwcRaw = document.getElementById('s-pwc').value;
             const key = document.getElementById('s-key').value;
-            
             if(!name || !pwRaw || !key) return alert("すべて入力してください");
             if(name.length > 8) return alert("ユーザー名は8文字以内で設定してください");
             if(pwRaw !== pwcRaw) return alert("パスワードが一致しません");
-            
             setLoading('btn-signup', true);
             const hashed = await hash(pwRaw);
-            
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "signup", name, pw: hashed, key }) })
-            .then(r => r.json()).then(res => {
-                if(res.success) {
-                    alert("登録が完了しました。ログインしてご利用ください。");
-                    mypageView = 'login';
-                    renderMypage();
-                } else {
-                    alert(res.message);
-                }
-            }).finally(() => setLoading('btn-signup', false));
+            .then(r => r.json()).then(res => { if(res.success) { alert("登録が完了しました。"); mypageView = 'login'; renderMypage(); } else { alert(res.message); } }).finally(() => setLoading('btn-signup', false));
         }
 
         async function resetPw() {
@@ -592,41 +479,22 @@
             setLoading('btn-reset', true);
             const hashed = await hash(pwRaw);
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "reset", name, key, pw: hashed }) })
-            .then(r => r.json()).then(res => {
-                if(res.success) { alert("更新完了"); mypageView = 'login'; renderMypage(); }
-                else { alert("情報が正しくありません"); }
-            }).finally(() => setLoading('btn-reset', false));
+            .then(r => r.json()).then(res => { if(res.success) { alert("更新完了"); mypageView = 'login'; renderMypage(); } else { alert("失敗"); } }).finally(() => setLoading('btn-reset', false));
         }
 
         async function updateInfo(type) {
             const val = document.getElementById('new-val').value;
             if(!val) return alert("入力してください");
-            let payload = { action: "update", id: currentUser.id, type, value: val };
-            if(type === 'pass') {
-                const conf = document.getElementById('new-val-confirm').value;
-                if(val !== conf) return alert("一致しません");
-                payload.value = await hash(val);
-            }
+            let payload = { action: "update", id: currentUser.id, type, value: (type === 'pass') ? await hash(val) : val };
+            if(type === 'pass' && val !== document.getElementById('new-val-confirm').value) return alert("一致しません");
             setLoading('btn-update', true);
             fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) })
-            .then(r => r.json()).then(res => {
-                if(res.success) { alert("更新しました"); mypageView = 'dashboard'; renderMypage(); }
-                else { alert("失敗しました"); }
-            }).finally(() => setLoading('btn-update', false));
+            .then(r => r.json()).then(res => { if(res.success) { alert("更新しました"); mypageView = 'dashboard'; renderMypage(); } }).finally(() => setLoading('btn-update', false));
         }
 
-        function logout() { 
-            localStorage.removeItem('jump_user'); currentUser = null; mypageView = 'login'; renderMypage(); updateHeader(); initHome(); 
-            cachedData = { 0: null, 1: null, 2: null };
-        }
+        function logout() { localStorage.removeItem('jump_user'); currentUser = null; mypageView = 'login'; renderMypage(); updateHeader(); initHome(); cachedData = { 0: null, 1: null, 2: null }; }
 
-        window.onload = () => { 
-            currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
-            updateHeader(); initHome(); renderMypage(); 
-            moveSlider('league', 0);
-            moveSlider('data', 0);
-            moveSlider('qa', 0);
-        };
+        window.onload = () => { currentUser = JSON.parse(localStorage.getItem('jump_user')) || null; updateHeader(); initHome(); renderMypage(); moveSlider('league', 0); moveSlider('data', 0); moveSlider('qa', 0); };
     </script>
 </body>
 </html>
