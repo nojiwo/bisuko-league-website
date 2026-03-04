@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ジャンプ掲載順予想</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
             --main-blue: #007bff;
@@ -14,6 +15,7 @@
             --border-gray: #ccc;
             --bg-red: #ffcccc;
             --bg-yellow: #ffffcc;
+            --dark-gray: #333; /* ハンドル背景用 */
         }
 
         body {
@@ -21,7 +23,7 @@
             font-family: sans-serif;
             background-color: var(--bg-gray);
             display: flex; flex-direction: column;
-            height: 100vh; overflow: hidden; /* 全体スクロールを防止 */
+            height: 100vh; overflow: hidden;
         }
 
         header { background-color: var(--header-blue); padding: 20px 0; text-align: center; flex-shrink: 0; z-index: 100; }
@@ -30,18 +32,11 @@
             padding: 8px 35px; border-radius: 30px; border: 2px solid white;
         }
 
-        /* 修正：main自体はスクロールさせず、各セクションで制御する */
         main { flex: 1; position: relative; overflow: hidden; }
 
-        /* 修正：各セクションをflexコンテナにし、中身だけスクロールさせる */
-        .page-section { 
-            display: none; 
-            height: 100%; 
-            flex-direction: column; 
-        }
+        .page-section { display: none; height: 100%; flex-direction: column; }
         .page-section.active { display: flex; }
 
-        /* 修正：タブの下のコンテンツエリア用のスクロール設定 */
         .section-scroll-area {
             flex: 1;
             overflow-y: auto;
@@ -49,20 +44,33 @@
             padding-bottom: 80px;
         }
 
+        /* --- League: ドラッグ&ドロップリスト --- */
+        .prediction-list { list-style: none; padding: 10px; margin: 0; }
+        .prediction-item {
+            display: flex; align-items: center; background: white; margin-bottom: 8px;
+            border-radius: 8px; border: 1px solid #ddd; overflow: hidden; height: 55px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        /* ハンドル部分：ここだけ当たり判定 */
+        .drag-handle {
+            width: 50px; height: 100%; background-color: var(--main-blue); color: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: grab; flex-shrink: 0;
+        }
+        .drag-handle:active { cursor: grabbing; }
+        .rank-num { font-weight: bold; font-size: 1.1rem; line-height: 1; }
+        .handle-dots { color: var(--dark-gray); font-size: 10px; margin-top: 2px; font-weight: bold; }
+        
+        .item-content { flex: 1; padding: 0 15px; font-weight: bold; font-size: 0.95rem; color: #333; display: flex; justify-content: space-between; align-items: center; }
+        .badge { font-size: 0.7rem; padding: 3px 7px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
+        .badge-kanto { background: #ff4d4d; color: white; }
+        .badge-center { background: #ffcc00; color: #333; }
+
         /* テーブル共通スタイル */
         .data-table-container { width: 100%; overflow-x: auto; background: white; }
         table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; min-width: 450px; }
         th, td { border: 1px solid #ddd; padding: 8px 4px; text-align: center; white-space: nowrap; }
-        
-        /* 修正：テーブルヘッダー固定 */
-        th { 
-            background: #f4f4f4; 
-            position: sticky; 
-            top: 0; 
-            z-index: 20; 
-            border-top: none; 
-        }
-        
+        th { background: #f4f4f4; position: sticky; top: 0; z-index: 20; border-top: none; }
         .col-sticky { position: sticky; left: 0; background: #f9f9f9; z-index: 10; }
         th.col-sticky { z-index: 30; top: 0; } 
 
@@ -85,7 +93,7 @@
         .sub-nav-container {
             background-color: #333; position: relative; display: flex;
             height: 60px; padding: 0 10px; align-items: center; border-bottom: 2px solid #555;
-            flex-shrink: 0; /* 修正：タブを潰さない */
+            flex-shrink: 0;
         }
         .sub-tab {
             flex: 1; color: var(--text-gray); border: none; background: none;
@@ -154,9 +162,8 @@
                 <button class="sub-tab" onclick="moveSlider('league', 1)">予選参加希望</button>
                 <span class="slider"></span>
             </div>
-            <div class="section-scroll-area">
-                <div id="league-content" style="padding:20px; text-align:center;">League</div>
-            </div>
+            <div class="section-scroll-area" id="league-content">
+                </div>
         </section>
         <section id="data" class="page-section">
             <div class="sub-nav-container" id="nav-data">
@@ -195,8 +202,6 @@
     </footer>
 
     <script>
-        // 以降、JavaScriptのロジックはご提示いただいたコードをそのまま継承します。
-        // （変更点はありませんが、HTML構造の変更に合わせて一部の取得先が自動的に適合するように記述されています）
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxWbCA7gRrqyTr1Ti_CEeB_9fZHbzrC7TFJlYJLTEa2xBVEtleC2vR1NXdLufw3okJj/exec";
         let currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
         let mypageView = currentUser ? 'dashboard' : 'login';
@@ -204,6 +209,7 @@
         let activeSubTabs = { league: 0, data: 0, qa: 0 };
         let cachedInquiryHistory = null;
         let cachedData = { 0: null, 1: null, 2: null };
+        let cachedHomeData = null;
 
         function showMainPage(pageId, element) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -219,7 +225,7 @@
             element.querySelector('img').src = `icon-b-${activeType}.svg`;
             
             if(pageId === 'home') initHome();
-            if(pageId === 'league') moveSlider('league', activeSubTabs.league);
+            if(pageId === 'league') renderLeague(activeSubTabs.league);
             if(pageId === 'data') moveSlider('data', activeSubTabs.data);
             if(pageId === 'qa') moveSlider('qa', activeSubTabs.qa);
             if(pageId === 'mypage') renderMypage();
@@ -232,14 +238,22 @@
             try {
                 const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getHomeData", userId }) });
                 const res = await response.json();
+                cachedHomeData = res;
                 const issueDisplay = formatJumpId(res.issueId);
                 let html = `<div class="notice-card"><div class="notice-title">📢 お知らせ</div><div class="notice-content">${res.notice || '現在お知らせはありません。'}</div></div>
                     <div class="status-card"><div class="status-header">現在のステータス</div>
                     <div class="status-row"><span class="status-label">募集中の号</span><span class="status-value">${issueDisplay}</span></div>`;
+                
                 if (userId) {
                     html += `<div class="status-row"><span class="status-label">予想提出</span><span class="status-value ${res.isSubmitted ? 'ok' : 'ng'}">${res.isSubmitted ? '提出済み' : '未提出'}</span></div>`;
-                    if (res.showEventStatus) {
-                        html += `<div class="status-row"><span class="status-label">予選参加希望</span><span class="status-value ${res.isParticipating ? 'ok' : 'ng'}">${res.isParticipating ? '参加中' : '未参加'}</span></div>`;
+                    
+                    // 予選/イベントステータスの動的表示
+                    if (res.eventInfo) {
+                        html += `<div class="status-row"><span class="status-label">${res.eventInfo.name}</span><span class="status-value ${res.isParticipating ? 'ok' : 'ng'}">${res.isParticipating ? '参加中' : '未参加'}</span></div>`;
+                        // 参加希望ボタン（予選募集中の時のみ）
+                        if (res.eventInfo.isQualifying) {
+                            html += `<button class="primary-btn" style="margin-top:10px; height:45px; font-size:0.9rem;" onclick="showMainPage('league', document.querySelector('[data-type=\\'league\\']')); renderLeague(1);">参加希望を出す</button>`;
+                        }
                     }
                 } else {
                     html += `<div style="text-align:center; font-size:0.8rem; color:#888; margin-top:10px;">ログインすると提出状況が表示されます</div>`;
@@ -275,8 +289,121 @@
             
             if(sectionId === 'qa') renderQAContent(index);
             if(sectionId === 'data') loadDataTab(index);
+            if(sectionId === 'league') renderLeague(index);
         }
 
+        // --- League: 予想提出と予選参加 ---
+        async function renderLeague(index) {
+            const container = document.getElementById('league-content');
+            if (!currentUser) {
+                container.innerHTML = `<div style="text-align:center; padding:50px; color:#666;">この機能にはログインが必要です。</div>`;
+                return;
+            }
+
+            if (index === 0) {
+                // 予想提出タブ
+                container.innerHTML = '<div style="text-align:center; padding:50px;">リストを読み込み中...</div>';
+                try {
+                    const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getPredictionList", userId: currentUser.id }) });
+                    const res = await response.json();
+                    
+                    let html = `<ul id="sortable-list" class="prediction-list">`;
+                    res.list.forEach((name, i) => {
+                        let badge = "";
+                        if (res.kanto.includes(name)) badge = '<span class="badge badge-kanto">巻頭</span>';
+                        else if (res.center.includes(name)) badge = '<span class="badge badge-center">センター</span>';
+                        
+                        html += `
+                        <li class="prediction-item" data-name="${name}">
+                            <div class="drag-handle">
+                                <span class="rank-num">${i + 1}</span>
+                                <span class="handle-dots">::::</span>
+                            </div>
+                            <div class="item-content">
+                                <span>${name}</span>
+                                ${badge}
+                            </div>
+                        </li>`;
+                    });
+                    html += `</ul>
+                        <div style="padding:15px;">
+                            <button class="primary-btn" id="btn-save-prediction" onclick="savePrediction()">
+                                <div class="spinner"></div><span>この順番で提出する</span>
+                            </button>
+                        </div>`;
+                    container.innerHTML = html;
+
+                    // SortableJS初期化（ハンドルのみ有効）
+                    const el = document.getElementById('sortable-list');
+                    Sortable.create(el, {
+                        handle: '.drag-handle',
+                        animation: 150,
+                        onEnd: function() {
+                            // 並び替え後に数字を振り直す
+                            document.querySelectorAll('.rank-num').forEach((numEl, idx) => {
+                                numEl.innerText = idx + 1;
+                            });
+                        }
+                    });
+                } catch (e) { container.innerHTML = '読み込みに失敗しました'; }
+            } else {
+                // 予選参加希望タブ
+                container.innerHTML = '<div style="text-align:center; padding:50px;">状況を確認中...</div>';
+                try {
+                    const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getEventStatus", userId: currentUser.id }) });
+                    const res = await response.json();
+
+                    if (!res.hasActiveQualifying) {
+                        container.innerHTML = '<div style="text-align:center; padding:50px; color:#666;">次週から開催の予選はありません。</div>';
+                        return;
+                    }
+
+                    const isJoined = res.isParticipating;
+                    container.innerHTML = `
+                        <div style="padding:30px 20px; text-align:center;">
+                            <h2 style="margin:0 0 10px; color:var(--main-blue);">${res.eventName}</h2>
+                            <p style="color:#666; font-size:0.9rem; margin-bottom:30px;">
+                                現在、このイベントの参加希望を${isJoined ? '受け付けています' : '出していません'}。
+                            </p>
+                            <button class="primary-btn" id="btn-toggle-event" 
+                                    style="background:${isJoined ? '#dc3545' : ''}" 
+                                    onclick="toggleEventParticipation(${isJoined})">
+                                <div class="spinner"></div><span>${isJoined ? '参加を辞退する' : '参加する'}</span>
+                            </button>
+                        </div>`;
+                } catch (e) { container.innerHTML = '読み込み失敗'; }
+            }
+        }
+
+        async function savePrediction() {
+            const items = document.querySelectorAll('.prediction-item');
+            const predictionArray = Array.from(items).map(item => item.getAttribute('data-name'));
+            setLoading('btn-save-prediction', true);
+            try {
+                const response = await fetch(GAS_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify({ action: "savePrediction", userId: currentUser.id, prediction: predictionArray }) 
+                });
+                const res = await response.json();
+                if(res.success) alert("予想を提出しました！"); else alert("エラー: " + res.message);
+            } catch (e) { alert("送信に失敗しました"); }
+            setLoading('btn-save-prediction', false);
+        }
+
+        async function toggleEventParticipation(currentStatus) {
+            setLoading('btn-toggle-event', true);
+            try {
+                const response = await fetch(GAS_URL, { 
+                    method: "POST", 
+                    body: JSON.stringify({ action: "toggleEventParticipation", userId: currentUser.id, userName: currentUser.name, join: !currentStatus }) 
+                });
+                const res = await response.json();
+                if(res.success) renderLeague(1); // 再描画
+            } catch (e) { alert("更新に失敗しました"); }
+            setLoading('btn-toggle-event', false);
+        }
+
+        // --- Data: 統計・履歴 ---
         async function loadDataTab(index) {
             const container = document.getElementById('data-content');
             if (cachedData[index]) { displayData(index, cachedData[index], container); return; }
@@ -362,16 +489,11 @@
             container.innerHTML = html;
         }
 
+        // --- Q&A: 問い合わせ ---
         function renderQAContent(index) {
             const container = document.getElementById('qa-content');
             if (!currentUser) {
-                container.innerHTML = `
-                    <div style="text-align:center; padding:50px; color:#666;">
-                        <p>お問い合わせにはログインが必要です。</p>
-                        <button class="primary-btn" style="width:200px; margin:0 auto;" onclick="showMainPage('mypage', document.querySelector('[data-type=\\'mypage\\']'))">
-                            ログイン画面へ
-                        </button>
-                    </div>`;
+                container.innerHTML = `<div style="text-align:center; padding:50px; color:#666;"><p>お問い合わせにはログインが必要です。</p></div>`;
                 return;
             }
             if (index === 0) {
@@ -395,7 +517,6 @@
         }
 
         async function sendInquiry() {
-            if(!currentUser) return alert("ログインが必要です");
             const category = document.getElementById('qa-category').value;
             const body = document.getElementById('qa-body').value;
             if(!body) return alert("内容を入力してください");
@@ -404,10 +525,10 @@
                 const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "sendInquiry", userId: currentUser.id, category, content: body }) });
                 const res = await response.json();
                 if(res.success) {
-                    alert("送信が完了しました");
+                    alert("送信しました");
                     document.getElementById('qa-body').value = "";
                     cachedInquiryHistory = null;
-                } else { alert("失敗しました"); }
+                }
             } catch (e) { alert("エラー"); }
             setLoading('btn-qa-send', false);
         }
@@ -415,7 +536,7 @@
         async function loadInquiryHistory() {
             document.getElementById('qa-content').innerHTML = '<div style="text-align:center; padding:20px;">履歴を読み込み中...</div>';
             try {
-                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getInquiryHistory" }) });
+                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getInquiryHistory", userId: currentUser.id }) });
                 cachedInquiryHistory = await response.json();
                 displayInquiryHistory();
             } catch (e) { document.getElementById('qa-content').innerHTML = '読み込み失敗'; }
@@ -448,22 +569,22 @@
 
         function showInquiryDetail(idx) {
             const item = cachedInquiryHistory[idx];
-            const container = document.getElementById('qa-content');
-            container.innerHTML = `
+            document.getElementById('qa-content').innerHTML = `
                 <div style="padding: 10px;">
-                    <h3 style="margin-top:0;">問い合わせ詳細</h3>
+                    <h3>問い合わせ詳細</h3>
                     <div class="status-card" style="padding:15px; background:#f9f9f9;">
-                        <p style="font-size:0.8rem; color:#888; margin:0 0 5px;">【要件】 ${item.category}</p>
-                        <p style="font-size:0.9rem; font-weight:bold; margin:0 0 15px; white-space:pre-wrap;">${item.content}</p>
+                        <p style="font-size:0.8rem; color:#888;">【要件】 ${item.category}</p>
+                        <p style="font-size:0.9rem; font-weight:bold; margin-bottom:15px; white-space:pre-wrap;">${item.content}</p>
                         <div style="border-top:1px solid #eee; padding-top:15px;">
-                            <p style="font-size:0.8rem; color:var(--main-blue); margin:0 0 5px;">【回答】</p>
+                            <p style="font-size:0.8rem; color:var(--main-blue);">【回答】</p>
                             <p style="font-size:0.9rem; color:#333; white-space:pre-wrap;">${item.answer || '回答をお待ちください。'}</p>
                         </div>
                     </div>
-                    <div class="auth-sub-links"><span onclick="displayInquiryHistory()">履歴一覧に戻る</span></div>
+                    <div class="auth-sub-links"><span onclick="displayInquiryHistory()">戻る</span></div>
                 </div>`;
         }
 
+        // --- Mypage: 認証・ユーザー情報 ---
         function updateHeader() { document.querySelector('.user-badge').innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん'; }
 
         function renderMypage() {
@@ -483,12 +604,6 @@
             } else if (mypageView === 'signup') {
                 container.innerHTML = `
                     <div class="auth-container">
-                        <div style="text-align:left; font-size:0.8rem; color:#555; background:#fff; padding:15px; border-radius:10px; border:1px solid #ddd; line-height:1.4;">
-                            <strong style="color:var(--main-blue);">ユーザー名について：</strong><br>
-                            メールアドレスではありません。動画内での結果発表等で使用される名前を<strong>8文字以内</strong>で設定してください。<br><br>
-                            <strong style="color:var(--main-blue);">秘密のキーワードについて：</strong><br>
-                            パスワードを忘れた際の再設定に使用します。好きな作品名など、覚えやすいものにしてください。
-                        </div>
                         <input type="text" id="s-name" placeholder="ユーザー名 (8文字以内)" maxlength="8">
                         <input type="password" id="s-pw" placeholder="パスワード">
                         <input type="password" id="s-pwc" placeholder="パスワード再確認">
@@ -515,8 +630,6 @@
                     <div class="list-item no-arrow">ユーザーID <span style="font-size:0.9rem; color:#888;">${currentUser.id}</span></div>
                     <div class="list-item" onclick="mypageView='edit_pass';renderMypage()">パスワード <span>＞</span></div>
                     <div class="list-item" onclick="mypageView='edit_key';renderMypage()">秘密のキーワード <span>＞</span></div>
-                    <div class="group-label">個人成績</div>
-                    <div class="list-item" onclick="alert('成績画面は後ほど！')">過去の成績 <span>＞</span></div>
                     <div class="logout-btn-container"><button class="logout-btn" onclick="logout()">ログアウト</button></div>`;
             } else if (mypageView.startsWith('edit_')) {
                 renderEditView(container);
@@ -525,19 +638,16 @@
 
         function renderEditView(container) {
             const type = mypageView.replace('edit_', '');
-            let title = "", inputHtml = "";
-            if (type === 'pass') {
-                title = "パスワードの変更";
-                inputHtml = `<input type="password" id="new-val" placeholder="新しいパスワード">
-                    <input type="password" id="new-val-confirm" placeholder="パスワード再確認">
-                    <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('new-val');togglePw('new-val-confirm')"> パスワードを表示</div>`;
-            } else if (type === 'key') {
-                title = "秘密のキーワードの変更";
-                inputHtml = `<input type="text" id="new-val" placeholder="新しい秘密のキーワード">`;
-            }
-            container.innerHTML = `<div style="padding: 20px;"><h3 style="margin-top:0;">${title}</h3>
-                <div class="auth-container" style="padding:0;">${inputHtml}
-                <button class="primary-btn" id="btn-update" onclick="updateInfo('${type}')"><div class="spinner"></div> <span>変更を保存する</span></button>
+            let title = type === 'pass' ? "パスワードの変更" : "秘密のキーワードの変更";
+            let inputs = type === 'pass' ? `
+                <input type="password" id="new-val" placeholder="新しいパスワード">
+                <input type="password" id="new-val-confirm" placeholder="パスワード再確認">
+                <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('new-val');togglePw('new-val-confirm')"> 表示</div>` 
+                : `<input type="text" id="new-val" placeholder="新しいキーワード">`;
+            
+            container.innerHTML = `<div style="padding: 20px;"><h3>${title}</h3>
+                <div class="auth-container" style="padding:0;">${inputs}
+                <button class="primary-btn" id="btn-update" onclick="updateInfo('${type}')"><div class="spinner"></div> <span>変更を保存</span></button>
                 <div class="auth-sub-links"><span onclick="mypageView='dashboard';renderMypage()">キャンセル</span></div></div></div>`;
         }
 
@@ -576,13 +686,12 @@
             const pwcRaw = document.getElementById('s-pwc').value;
             const key = document.getElementById('s-key').value;
             if(!name || !pwRaw || !key) return alert("すべて入力してください");
-            if(name.length > 8) return alert("ユーザー名は8文字以内で設定してください");
             if(pwRaw !== pwcRaw) return alert("パスワードが一致しません");
             setLoading('btn-signup', true);
             const hashed = await hash(pwRaw);
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "signup", name, pw: hashed, key }) })
             .then(r => r.json()).then(res => {
-                if(res.success) { alert("登録が完了しました。ログインしてご利用ください。"); mypageView = 'login'; renderMypage(); } else { alert(res.message); }
+                if(res.success) { alert("登録完了"); mypageView = 'login'; renderMypage(); } else { alert(res.message); }
             }).finally(() => setLoading('btn-signup', false));
         }
 
@@ -602,7 +711,6 @@
 
         async function updateInfo(type) {
             const val = document.getElementById('new-val').value;
-            if(!val) return alert("入力してください");
             let payload = { action: "update", id: currentUser.id, type, value: val };
             if(type === 'pass') {
                 const conf = document.getElementById('new-val-confirm').value;
@@ -612,7 +720,7 @@
             setLoading('btn-update', true);
             fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) })
             .then(r => r.json()).then(res => {
-                if(res.success) { alert("更新しました"); mypageView = 'dashboard'; renderMypage(); } else { alert("失敗しました"); }
+                if(res.success) { alert("更新しました"); mypageView = 'dashboard'; renderMypage(); }
             }).finally(() => setLoading('btn-update', false));
         }
 
