@@ -15,7 +15,7 @@
             --border-gray: #ccc;
             --bg-red: #ffcccc;
             --bg-yellow: #ffffcc;
-            --dark-gray: #333; /* ハンドル背景用 */
+            --dark-gray: #333;
         }
 
         body {
@@ -44,14 +44,13 @@
             padding-bottom: 80px;
         }
 
-        /* --- League: ドラッグ&ドロップリスト --- */
+        /* League: ドラッグ&ドロップリスト */
         .prediction-list { list-style: none; padding: 10px; margin: 0; }
         .prediction-item {
             display: flex; align-items: center; background: white; margin-bottom: 8px;
             border-radius: 8px; border: 1px solid #ddd; overflow: hidden; height: 55px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        /* ハンドル部分：ここだけ当たり判定 */
         .drag-handle {
             width: 50px; height: 100%; background-color: var(--main-blue); color: white;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -59,7 +58,7 @@
         }
         .drag-handle:active { cursor: grabbing; }
         .rank-num { font-weight: bold; font-size: 1.1rem; line-height: 1; }
-        .handle-dots { color: var(--dark-gray); font-size: 10px; margin-top: 2px; font-weight: bold; }
+        .handle-dots { color: rgba(255,255,255,0.5); font-size: 10px; margin-top: 2px; font-weight: bold; }
         
         .item-content { flex: 1; padding: 0 15px; font-weight: bold; font-size: 0.95rem; color: #333; display: flex; justify-content: space-between; align-items: center; }
         .badge { font-size: 0.7rem; padding: 3px 7px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
@@ -156,15 +155,16 @@
                 </div>
             </div>
         </section>
+
         <section id="league" class="page-section">
             <div class="sub-nav-container" id="nav-league">
                 <button class="sub-tab" onclick="moveSlider('league', 0)">予想提出</button>
                 <button class="sub-tab" onclick="moveSlider('league', 1)">予選参加希望</button>
                 <span class="slider"></span>
             </div>
-            <div class="section-scroll-area" id="league-content">
-                </div>
+            <div class="section-scroll-area" id="league-content"></div>
         </section>
+
         <section id="data" class="page-section">
             <div class="sub-nav-container" id="nav-data">
                 <button class="sub-tab" onclick="moveSlider('data', 0)">8週統計</button>
@@ -176,6 +176,7 @@
                 <div id="data-content"></div>
             </div>
         </section>
+
         <section id="qa" class="page-section">
             <div class="sub-nav-container" id="nav-qa">
                 <button class="sub-tab" onclick="moveSlider('qa', 0)">問い合わせ</button>
@@ -186,6 +187,7 @@
                 <div id="qa-content" style="padding:15px;"></div>
             </div>
         </section>
+
         <section id="mypage" class="page-section">
             <div class="section-scroll-area">
                 <div id="mypage-container"></div>
@@ -209,7 +211,16 @@
         let activeSubTabs = { league: 0, data: 0, qa: 0 };
         let cachedInquiryHistory = null;
         let cachedData = { 0: null, 1: null, 2: null };
-        let cachedHomeData = null;
+        
+        // --- League状態保持用のキャッシュ ---
+        let cachedLeagueData = {
+            status: null, // OPEN or CLOSE
+            initialList: null, // 初期取得リスト
+            currentSortList: null, // 並び替え途中のリスト
+            kanto: [],
+            center: [],
+            eventStatus: null // 予選参加状況キャッシュ
+        };
 
         function showMainPage(pageId, element) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -225,7 +236,7 @@
             element.querySelector('img').src = `icon-b-${activeType}.svg`;
             
             if(pageId === 'home') initHome();
-            if(pageId === 'league') renderLeague(activeSubTabs.league);
+            if(pageId === 'league') moveSlider('league', activeSubTabs.league);
             if(pageId === 'data') moveSlider('data', activeSubTabs.data);
             if(pageId === 'qa') moveSlider('qa', activeSubTabs.qa);
             if(pageId === 'mypage') renderMypage();
@@ -238,22 +249,14 @@
             try {
                 const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getHomeData", userId }) });
                 const res = await response.json();
-                cachedHomeData = res;
                 const issueDisplay = formatJumpId(res.issueId);
                 let html = `<div class="notice-card"><div class="notice-title">📢 お知らせ</div><div class="notice-content">${res.notice || '現在お知らせはありません。'}</div></div>
                     <div class="status-card"><div class="status-header">現在のステータス</div>
                     <div class="status-row"><span class="status-label">募集中の号</span><span class="status-value">${issueDisplay}</span></div>`;
-                
                 if (userId) {
                     html += `<div class="status-row"><span class="status-label">予想提出</span><span class="status-value ${res.isSubmitted ? 'ok' : 'ng'}">${res.isSubmitted ? '提出済み' : '未提出'}</span></div>`;
-                    
-                    // 予選/イベントステータスの動的表示
                     if (res.eventInfo) {
                         html += `<div class="status-row"><span class="status-label">${res.eventInfo.name}</span><span class="status-value ${res.isParticipating ? 'ok' : 'ng'}">${res.isParticipating ? '参加中' : '未参加'}</span></div>`;
-                        // 参加希望ボタン（予選募集中の時のみ）
-                        if (res.eventInfo.isQualifying) {
-                            html += `<button class="primary-btn" style="margin-top:10px; height:45px; font-size:0.9rem;" onclick="showMainPage('league', document.querySelector('[data-type=\\'league\\']')); renderLeague(1);">参加希望を出す</button>`;
-                        }
                     }
                 } else {
                     html += `<div style="text-align:center; font-size:0.8rem; color:#888; margin-top:10px;">ログインすると提出状況が表示されます</div>`;
@@ -289,104 +292,136 @@
             
             if(sectionId === 'qa') renderQAContent(index);
             if(sectionId === 'data') loadDataTab(index);
-            if(sectionId === 'league') renderLeague(index);
+            if(sectionId === 'league') renderLeagueContent(index);
         }
 
-        // --- League: 予想提出と予選参加 ---
-        async function renderLeague(index) {
+        // --- League機能の実装 ---
+        async function renderLeagueContent(index) {
             const container = document.getElementById('league-content');
+            
+            // ログインガード
             if (!currentUser) {
-                container.innerHTML = `<div style="text-align:center; padding:50px; color:#666;">この機能にはログインが必要です。</div>`;
+                container.innerHTML = `
+                    <div style="text-align:center; padding:50px; color:#666;">
+                        <p>League機能の利用にはログインが必要です。</p>
+                        <button class="primary-btn" style="width:200px; margin:0 auto;" onclick="showMainPage('mypage', document.querySelector('[data-type=\\'mypage\\']'))">ログイン画面へ</button>
+                    </div>`;
                 return;
             }
 
             if (index === 0) {
                 // 予想提出タブ
-                container.innerHTML = '<div style="text-align:center; padding:50px;">リストを読み込み中...</div>';
-                try {
-                    const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getPredictionList", userId: currentUser.id }) });
-                    const res = await response.json();
-                    
-                    let html = `<ul id="sortable-list" class="prediction-list">`;
-                    res.list.forEach((name, i) => {
-                        let badge = "";
-                        if (res.kanto.includes(name)) badge = '<span class="badge badge-kanto">巻頭</span>';
-                        else if (res.center.includes(name)) badge = '<span class="badge badge-center">センター</span>';
-                        
-                        html += `
-                        <li class="prediction-item" data-name="${name}">
-                            <div class="drag-handle">
-                                <span class="rank-num">${i + 1}</span>
-                                <span class="handle-dots">::::</span>
-                            </div>
-                            <div class="item-content">
-                                <span>${name}</span>
-                                ${badge}
-                            </div>
-                        </li>`;
-                    });
-                    html += `</ul>
-                        <div style="padding:15px;">
-                            <button class="primary-btn" id="btn-save-prediction" onclick="savePrediction()">
-                                <div class="spinner"></div><span>この順番で提出する</span>
-                            </button>
-                        </div>`;
-                    container.innerHTML = html;
-
-                    // SortableJS初期化（ハンドルのみ有効）
-                    const el = document.getElementById('sortable-list');
-                    Sortable.create(el, {
-                        handle: '.drag-handle',
-                        animation: 150,
-                        onEnd: function() {
-                            // 並び替え後に数字を振り直す
-                            document.querySelectorAll('.rank-num').forEach((numEl, idx) => {
-                                numEl.innerText = idx + 1;
-                            });
-                        }
-                    });
-                } catch (e) { container.innerHTML = '読み込みに失敗しました'; }
+                if (cachedLeagueData.currentSortList) {
+                    displaySortableList(); // キャッシュがあれば即座に表示
+                } else {
+                    container.innerHTML = '<div style="text-align:center; padding:50px;">リストを読み込み中...</div>';
+                    try {
+                        const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getPredictionList", userId: currentUser.id }) });
+                        const res = await response.json();
+                        cachedLeagueData.status = res.status; // OPEN or CLOSE
+                        cachedLeagueData.initialList = res.list;
+                        cachedLeagueData.currentSortList = [...res.list];
+                        cachedLeagueData.kanto = res.kanto || [];
+                        cachedLeagueData.center = res.center || [];
+                        displaySortableList();
+                    } catch (e) { container.innerHTML = '<div style="text-align:center; padding:50px;">取得エラー</div>'; }
+                }
             } else {
                 // 予選参加希望タブ
-                container.innerHTML = '<div style="text-align:center; padding:50px;">状況を確認中...</div>';
-                try {
-                    const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getEventStatus", userId: currentUser.id }) });
-                    const res = await response.json();
-
-                    if (!res.hasActiveQualifying) {
-                        container.innerHTML = '<div style="text-align:center; padding:50px; color:#666;">次週から開催の予選はありません。</div>';
-                        return;
-                    }
-
-                    const isJoined = res.isParticipating;
-                    container.innerHTML = `
-                        <div style="padding:30px 20px; text-align:center;">
-                            <h2 style="margin:0 0 10px; color:var(--main-blue);">${res.eventName}</h2>
-                            <p style="color:#666; font-size:0.9rem; margin-bottom:30px;">
-                                現在、このイベントの参加希望を${isJoined ? '受け付けています' : '出していません'}。
-                            </p>
-                            <button class="primary-btn" id="btn-toggle-event" 
-                                    style="background:${isJoined ? '#dc3545' : ''}" 
-                                    onclick="toggleEventParticipation(${isJoined})">
-                                <div class="spinner"></div><span>${isJoined ? '参加を辞退する' : '参加する'}</span>
-                            </button>
-                        </div>`;
-                } catch (e) { container.innerHTML = '読み込み失敗'; }
+                if (cachedLeagueData.eventStatus) {
+                    displayEventStatus();
+                } else {
+                    container.innerHTML = '<div style="text-align:center; padding:50px;">状況を読み込み中...</div>';
+                    try {
+                        const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getEventStatus", userId: currentUser.id }) });
+                        cachedLeagueData.eventStatus = await response.json();
+                        displayEventStatus();
+                    } catch (e) { container.innerHTML = 'エラー'; }
+                }
             }
         }
 
+        function displaySortableList() {
+            const container = document.getElementById('league-content');
+            
+            // 受付期間外のチェック
+            if (cachedLeagueData.status === "CLOSE") {
+                container.innerHTML = '<div style="text-align:center; padding:80px; color:#888; font-weight:bold;">現在は受付期間外です</div>';
+                return;
+            }
+
+            let html = `<ul id="sortable-list" class="prediction-list">`;
+            cachedLeagueData.currentSortList.forEach((name, i) => {
+                let badge = "";
+                if (cachedLeagueData.kanto.includes(name)) badge = '<span class="badge badge-kanto">巻頭</span>';
+                else if (cachedLeagueData.center.includes(name)) badge = '<span class="badge badge-center">センター</span>';
+                
+                html += `
+                <li class="prediction-item" data-name="${name}">
+                    <div class="drag-handle">
+                        <span class="rank-num">${i + 1}</span>
+                        <span class="handle-dots">::::</span>
+                    </div>
+                    <div class="item-content"><span>${name}</span>${badge}</div>
+                </li>`;
+            });
+            html += `</ul>
+                <div style="padding:15px; margin-bottom:20px;">
+                    <button class="primary-btn" id="btn-save-prediction" onclick="savePrediction()">
+                        <div class="spinner"></div><span>この順番で提出する</span>
+                    </button>
+                    <p style="text-align:center; font-size:0.75rem; color:#888; margin-top:10px;">※提出するまで順番は確定されません</p>
+                </div>`;
+            container.innerHTML = html;
+
+            const el = document.getElementById('sortable-list');
+            Sortable.create(el, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: function() {
+                    const items = el.querySelectorAll('.prediction-item');
+                    const newList = Array.from(items).map(item => item.getAttribute('data-name'));
+                    cachedLeagueData.currentSortList = newList; // 並び順をキャッシュに保存
+                    // ランク数字の更新
+                    document.querySelectorAll('.rank-num').forEach((numEl, idx) => {
+                        numEl.innerText = idx + 1;
+                    });
+                }
+            });
+        }
+
+        function displayEventStatus() {
+            const container = document.getElementById('league-content');
+            const res = cachedLeagueData.eventStatus;
+            if (!res.hasActiveQualifying) {
+                container.innerHTML = '<div style="text-align:center; padding:50px; color:#666;">現在募集中の予選はありません。</div>';
+                return;
+            }
+            const isJoined = res.isParticipating;
+            container.innerHTML = `
+                <div style="padding:30px 20px; text-align:center;">
+                    <h2 style="margin:0 0 10px; color:var(--main-blue);">${res.eventName}</h2>
+                    <p style="color:#666; font-size:0.9rem; margin-bottom:30px;">
+                        現在、参加希望を${isJoined ? '提出済みです' : '提出していません'}。
+                    </p>
+                    <button class="primary-btn" id="btn-toggle-event" 
+                            style="background:${isJoined ? '#dc3545' : ''}" 
+                            onclick="toggleEventParticipation(${isJoined})">
+                        <div class="spinner"></div><span>${isJoined ? '参加を辞退する' : '参加を希望する'}</span>
+                    </button>
+                </div>`;
+        }
+
         async function savePrediction() {
-            const items = document.querySelectorAll('.prediction-item');
-            const predictionArray = Array.from(items).map(item => item.getAttribute('data-name'));
             setLoading('btn-save-prediction', true);
             try {
                 const response = await fetch(GAS_URL, { 
                     method: "POST", 
-                    body: JSON.stringify({ action: "savePrediction", userId: currentUser.id, prediction: predictionArray }) 
+                    body: JSON.stringify({ action: "savePrediction", userId: currentUser.id, prediction: cachedLeagueData.currentSortList }) 
                 });
                 const res = await response.json();
-                if(res.success) alert("予想を提出しました！"); else alert("エラー: " + res.message);
-            } catch (e) { alert("送信に失敗しました"); }
+                if(res.success) alert("予想を提出しました！"); else alert("失敗: " + res.message);
+            } catch (e) { alert("通信エラー"); }
             setLoading('btn-save-prediction', false);
         }
 
@@ -398,8 +433,11 @@
                     body: JSON.stringify({ action: "toggleEventParticipation", userId: currentUser.id, userName: currentUser.name, join: !currentStatus }) 
                 });
                 const res = await response.json();
-                if(res.success) renderLeague(1); // 再描画
-            } catch (e) { alert("更新に失敗しました"); }
+                if(res.success) {
+                    cachedLeagueData.eventStatus = null; // キャッシュクリアして再取得
+                    renderLeagueContent(1);
+                }
+            } catch (e) { alert("更新失敗"); }
             setLoading('btn-toggle-event', false);
         }
 
@@ -584,7 +622,7 @@
                 </div>`;
         }
 
-        // --- Mypage: 認証・ユーザー情報 ---
+        // --- Mypage: 認証 ---
         function updateHeader() { document.querySelector('.user-badge').innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん'; }
 
         function renderMypage() {
@@ -676,6 +714,7 @@
                     localStorage.setItem('jump_user', JSON.stringify(currentUser));
                     mypageView = 'dashboard'; renderMypage(); updateHeader(); initHome();
                     cachedData = { 0: null, 1: null, 2: null };
+                    cachedLeagueData = { status: null, initialList: null, currentSortList: null, kanto: [], center: [], eventStatus: null };
                 } else { alert("失敗しました"); }
             }).finally(() => setLoading('btn-login', false));
         }
@@ -727,6 +766,7 @@
         function logout() { 
             localStorage.removeItem('jump_user'); currentUser = null; mypageView = 'login'; renderMypage(); updateHeader(); initHome(); 
             cachedData = { 0: null, 1: null, 2: null };
+            cachedLeagueData = { status: null, initialList: null, currentSortList: null, kanto: [], center: [], eventStatus: null };
         }
 
         window.onload = () => { 
