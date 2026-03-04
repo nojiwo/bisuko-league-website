@@ -37,7 +37,7 @@
         .notice-title { font-weight: bold; font-size: 0.9rem; color: #333; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
         .notice-content { font-size: 0.85rem; color: #555; line-height: 1.5; white-space: pre-wrap; }
 
-        .status-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .status-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 10px; }
         .status-header { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; font-weight: bold; color: var(--main-blue); text-align: center; }
         .status-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; }
         .status-label { color: #666; }
@@ -60,7 +60,9 @@
         }
 
         .auth-container { padding: 20px; display: flex; flex-direction: column; gap: 15px; text-align: center; }
-        .auth-container input { padding: 12px; border-radius: 8px; border: 1px solid var(--border-gray); font-size: 1rem; width: 100%; box-sizing: border-box; }
+        .auth-container input, .auth-container select, .auth-container textarea { 
+            padding: 12px; border-radius: 8px; border: 1px solid var(--border-gray); font-size: 1rem; width: 100%; box-sizing: border-box; 
+        }
         
         .pw-toggle-area { text-align: left; font-size: 0.8rem; color: #555; display: flex; align-items: center; gap: 8px; margin-top: -5px; }
         .pw-toggle-area input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; }
@@ -86,13 +88,14 @@
         .list-item { background: #d9d9d9; border-bottom: 1px solid #bbb; padding: 18px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .list-item.no-arrow { cursor: default; }
         .list-item span { color: #666; font-size: 1.2rem; font-weight: bold; }
+        
         .logout-btn-container { padding: 30px 20px; text-align: center; }
         .logout-btn { 
             display: inline-block; width: 220px; padding: 12px; border: 2px solid red; 
             background: white; color: red; border-radius: 30px; font-weight: bold; cursor: pointer; 
         }
 
-        footer { position: fixed; bottom: 0; width: 100%; background-color: var(--footer-bg); border-top: 4px solid var(--main-blue); display: flex; padding: 8px 0; }
+        footer { position: fixed; bottom: 0; width: 100%; background-color: var(--footer-bg); border-top: 4px solid var(--main-blue); display: flex; padding: 8px 0; z-index: 100; }
         .nav-item { flex: 1; text-align: center; text-decoration: none; color: var(--text-gray); font-size: 0.7rem; }
         .nav-item.active { color: var(--main-blue); }
         .nav-item img { width: 30px; height: 30px; display: block; margin: 0 auto 2px; }
@@ -108,14 +111,16 @@
                 <div style="text-align:center; padding:50px;">同期中...</div>
             </div>
         </section>
+
         <section id="league" class="page-section">
             <div class="sub-nav-container" id="nav-league">
                 <button class="sub-tab" onclick="moveSlider('league', 0)">予想提出</button>
                 <button class="sub-tab" onclick="moveSlider('league', 1)">予選参加希望</button>
                 <span class="slider"></span>
             </div>
-            <div id="league-content" style="padding:20px; text-align:center;">League</div>
+            <div id="league-content" style="padding:20px; text-align:center;">League Content</div>
         </section>
+
         <section id="data" class="page-section">
             <div class="sub-nav-container" id="nav-data">
                 <button class="sub-tab" onclick="moveSlider('data', 0)">8週統計</button>
@@ -123,17 +128,28 @@
                 <button class="sub-tab" onclick="moveSlider('data', 2)">みんなの予想</button>
                 <span class="slider"></span>
             </div>
-            <div id="data-content" style="padding:20px; text-align:center;">Data</div>
+            <div id="data-content" style="padding:20px; text-align:center;">Data Content</div>
         </section>
-        <section id="qa" class="page-section"><div style="padding:50px; text-align:center;">問い合せ</div></section>
-        <section id="mypage" class="page-section"><div id="mypage-container"></div></section>
+
+        <section id="qa" class="page-section">
+            <div class="sub-nav-container" id="nav-qa">
+                <button class="sub-tab" onclick="moveSlider('qa', 0)">問い合わせ</button>
+                <button class="sub-tab" onclick="moveSlider('qa', 1)">履歴</button>
+                <span class="slider"></span>
+            </div>
+            <div id="qa-content" style="padding:15px;"></div>
+        </section>
+
+        <section id="mypage" class="page-section">
+            <div id="mypage-container"></div>
+        </section>
     </main>
 
     <footer>
         <a href="#" class="nav-item active" onclick="showMainPage('home', this)"><img src="icon-b-home.svg">Home</a>
         <a href="#" class="nav-item" onclick="showMainPage('league', this)"><img src="icon-g-league.svg">League</a>
         <a href="#" class="nav-item" onclick="showMainPage('data', this)"><img src="icon-g-data.svg">Data</a>
-        <a href="#" class="nav-item" onclick="showMainPage('qa', this)"><img src="icon-g-q&a.svg">Q&A</a>
+        <a href="#" class="nav-item" onclick="showMainPage('qa', this)"><img src="icon-g-qa.svg">Q&A</a>
         <a href="#" class="nav-item" onclick="showMainPage('mypage', this)"><img src="icon-g-mypage.svg">My Page</a>
     </footer>
 
@@ -145,7 +161,8 @@
         // 各メインタブの「現在のサブタブ番号」を保持する
         let activeSubTabs = {
             league: 0,
-            data: 0
+            data: 0,
+            qa: 0
         };
 
         function showMainPage(pageId, element) {
@@ -154,17 +171,17 @@
             
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
-                const type = item.innerText.toLowerCase().trim().replace(' ', '');
-                item.querySelector('img').src = `icon-g-${type === 'q&a' ? 'q&a' : type}.svg`;
+                const text = item.innerText.toLowerCase().trim().replace('&', '');
+                item.querySelector('img').src = `icon-g-${text}.svg`;
             });
             element.classList.add('active');
-            const activeType = element.innerText.toLowerCase().trim().replace(' ', '');
-            element.querySelector('img').src = `icon-b-${activeType === 'q&a' ? 'q&a' : activeType}.svg`;
+            const activeText = element.innerText.toLowerCase().trim().replace('&', '');
+            element.querySelector('img').src = `icon-b-${activeText}.svg`;
             
             if(pageId === 'home') initHome();
-            // メイン移動時、保持しているサブタブ番号でスライダーを復元する
             if(pageId === 'league') moveSlider('league', activeSubTabs.league);
             if(pageId === 'data') moveSlider('data', activeSubTabs.data);
+            if(pageId === 'qa') moveSlider('qa', activeSubTabs.qa);
             if(pageId === 'mypage') renderMypage();
             updateHeader();
         }
@@ -208,7 +225,6 @@
             const container = document.getElementById(`nav-${sectionId}`);
             if (!container) return;
 
-            // 状態を更新
             activeSubTabs[sectionId] = index;
 
             const tabs = container.getElementsByClassName('sub-tab');
@@ -221,11 +237,88 @@
             for (let t of tabs) t.classList.remove('active');
             tabs[index].classList.add('active');
 
-            // ここで中身の切り替え処理が必要なら追加
-            const content = document.getElementById(`${sectionId}-content`);
-            if(content) content.innerText = `${sectionId} - Tab ${index + 1} の内容を表示予定`;
+            if(sectionId === 'qa') renderQAContent(index);
+            else {
+                const content = document.getElementById(`${sectionId}-content`);
+                if(content) content.innerText = `${sectionId} - Tab ${index + 1} の内容を表示予定`;
+            }
         }
 
+        // --- Q&A 表示ロジック ---
+        function renderQAContent(index) {
+            const container = document.getElementById('qa-content');
+            if (index === 0) {
+                container.innerHTML = `
+                    <div class="auth-container" style="padding:0; gap:10px;">
+                        <p style="text-align:left; font-size:0.9rem; margin:10px 0 5px;">要件を選択してください</p>
+                        <select id="qa-category">
+                            <option value="不具合の報告">不具合の報告</option>
+                            <option value="サイトの使用方法について">サイトの使用方法について</option>
+                            <option value="その他">その他</option>
+                        </select>
+                        <textarea id="qa-body" placeholder="内容を入力してください" style="height:150px;"></textarea>
+                        <button class="primary-btn" id="btn-qa-send" onclick="sendInquiry()">
+                            <div class="spinner"></div> <span>送信する</span>
+                        </button>
+                    </div>`;
+            } else {
+                container.innerHTML = '<div style="text-align:center; padding:20px;">履歴を読み込み中...</div>';
+                loadInquiryHistory();
+            }
+        }
+
+        async function sendInquiry() {
+            if(!currentUser) return alert("ログインが必要です");
+            const category = document.getElementById('qa-category').value;
+            const body = document.getElementById('qa-body').value;
+            if(!body) return alert("内容を入力してください");
+
+            setLoading('btn-qa-send', true);
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "sendInquiry", userId: currentUser.id, category: category, content: body })
+                });
+                const res = await response.json();
+                if(res.success) {
+                    alert("送信が完了しました");
+                    document.getElementById('qa-body').value = "";
+                } else { alert("送信に失敗しました"); }
+            } catch (e) { alert("エラーが発生しました"); }
+            setLoading('btn-qa-send', false);
+        }
+
+        async function loadInquiryHistory() {
+            const container = document.getElementById('qa-content');
+            try {
+                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "getInquiryHistory" }) });
+                const data = await response.json();
+                if(!data || data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding:20px;">履歴はありません</div>';
+                    return;
+                }
+                let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+                data.forEach(item => {
+                    const statusClass = item.answer ? 'ok' : 'ng';
+                    const statusText = item.answer ? '回答済み' : '未回答';
+                    html += `
+                        <div class="status-card" style="padding:15px; cursor:pointer;" onclick="alert('【内容】\\n${item.content}\\n\\n【回答】\\n${item.answer || '未回答です'}')">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <span style="font-weight:bold; font-size:0.85rem; color:var(--main-blue);">${item.category}</span>
+                                <span style="font-size:0.75rem; color:#888;">${item.timestamp}</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:0.85rem; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">${item.content}</span>
+                                <span class="status-value ${statusClass}" style="font-size:0.75rem;">${statusText}</span>
+                            </div>
+                        </div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (e) { container.innerHTML = '<div style="text-align:center; padding:20px;">読み込み失敗</div>'; }
+        }
+
+        // --- ユーザー認証 & MyPage ---
         function updateHeader() {
             document.querySelector('.user-badge').innerText = currentUser ? `${currentUser.name}さん` : 'ゲストさん';
         }
@@ -369,10 +462,8 @@
             setLoading('btn-update', true);
             fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) })
             .then(r => r.json()).then(res => {
-                if(res.success) {
-                    alert("更新しました");
-                    mypageView = 'dashboard'; renderMypage();
-                } else { alert("失敗しました"); }
+                if(res.success) { alert("更新しました"); mypageView = 'dashboard'; renderMypage(); }
+                else { alert("失敗しました"); }
             }).finally(() => setLoading('btn-update', false));
         }
 
@@ -381,9 +472,10 @@
         window.onload = () => { 
             currentUser = JSON.parse(localStorage.getItem('jump_user')) || null;
             updateHeader(); initHome(); renderMypage(); 
-            // 初期表示でスライダーの位置を調整
+            // 初期スライダー
             moveSlider('league', 0);
             moveSlider('data', 0);
+            moveSlider('qa', 0);
         };
     </script>
 </body>
