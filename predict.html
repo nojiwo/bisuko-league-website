@@ -329,12 +329,21 @@
                         <input type="password" id="l-pw" placeholder="パスワード">
                         <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('l-pw')"> パスワードを表示</div>
                         <button class="primary-btn" id="btn-login" onclick="login()"><div class="spinner"></div> <span>ログイン</span></button>
-                        <div class="auth-sub-links"><span onclick="mypageView='signup';renderMypage()">新規登録はこちら</span><span onclick="mypageView='reset';renderMypage()">パスワードを忘れた方はこちら</span></div>
+                        <div class="auth-sub-links">
+                            <span onclick="mypageView='signup';renderMypage()">新規登録はこちら</span>
+                            <span onclick="mypageView='reset';renderMypage()">パスワードを忘れた方はこちら</span>
+                        </div>
                     </div>`;
             } else if (mypageView === 'signup') {
                 container.innerHTML = `
                     <div class="auth-container">
-                        <input type="text" id="s-name" placeholder="ユーザー名">
+                        <div style="text-align:left; font-size:0.8rem; color:#555; background:#fff; padding:15px; border-radius:10px; border:1px solid #ddd; line-height:1.4;">
+                            <strong style="color:var(--main-blue);">ユーザー名について：</strong><br>
+                            メールアドレスではありません。動画内での結果発表等で使用される名前を<strong>8文字以内</strong>で設定してください。<br><br>
+                            <strong style="color:var(--main-blue);">秘密のキーワードについて：</strong><br>
+                            パスワードを忘れた際の再設定に使用します。好きな作品名など、覚えやすいものにしてください。
+                        </div>
+                        <input type="text" id="s-name" placeholder="ユーザー名 (8文字以内)" maxlength="8">
                         <input type="password" id="s-pw" placeholder="パスワード">
                         <input type="password" id="s-pwc" placeholder="パスワード再確認">
                         <div class="pw-toggle-area"><input type="checkbox" onchange="togglePw('s-pw');togglePw('s-pwc')"> パスワードを表示</div>
@@ -419,14 +428,23 @@
             const pwRaw = document.getElementById('s-pw').value;
             const pwcRaw = document.getElementById('s-pwc').value;
             const key = document.getElementById('s-key').value;
+            
             if(!name || !pwRaw || !key) return alert("すべて入力してください");
-            if(pwRaw !== pwcRaw) return alert("一致しません");
+            if(name.length > 8) return alert("ユーザー名は8文字以内で設定してください");
+            if(pwRaw !== pwcRaw) return alert("パスワードが一致しません");
+            
             setLoading('btn-signup', true);
             const hashed = await hash(pwRaw);
+            
             fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "signup", name, pw: hashed, key }) })
             .then(r => r.json()).then(res => {
-                if(res.success) { alert("登録完了! ID: " + res.id); mypageView = 'login'; renderMypage(); }
-                else { alert(res.message); }
+                if(res.success) {
+                    alert("登録が完了しました。ログインしてご利用ください。");
+                    mypageView = 'login';
+                    renderMypage();
+                } else {
+                    alert(res.message);
+                }
             }).finally(() => setLoading('btn-signup', false));
         }
 
