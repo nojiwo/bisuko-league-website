@@ -137,11 +137,11 @@
     </main>
 
     <footer>
-        <a href="#" class="nav-item active" onclick="showMainPage('home', this)"><img src="icon-b-home.svg">Home</a>
-        <a href="#" class="nav-item" onclick="showMainPage('league', this)"><img src="icon-g-league.svg">League</a>
-        <a href="#" class="nav-item" onclick="showMainPage('data', this)"><img src="icon-g-data.svg">Data</a>
-        <a href="#" class="nav-item" onclick="showMainPage('qa', this)"><img src="icon-g-qa.svg">Q&A</a>
-        <a href="#" class="nav-item" onclick="showMainPage('mypage', this)"><img src="icon-g-mypage.svg">My Page</a>
+        <a href="#" class="nav-item active" data-type="home" onclick="showMainPage('home', this)"><img src="icon-b-home.svg">Home</a>
+        <a href="#" class="nav-item" data-type="league" onclick="showMainPage('league', this)"><img src="icon-g-league.svg">League</a>
+        <a href="#" class="nav-item" data-type="data" onclick="showMainPage('data', this)"><img src="icon-g-data.svg">Data</a>
+        <a href="#" class="nav-item" data-type="qa" onclick="showMainPage('qa', this)"><img src="icon-g-qa.svg">Q&A</a>
+        <a href="#" class="nav-item" data-type="mypage" onclick="showMainPage('mypage', this)"><img src="icon-g-mypage.svg">My Page</a>
     </footer>
 
     <script>
@@ -150,7 +150,7 @@
         let mypageView = currentUser ? 'dashboard' : 'login';
         
         let activeSubTabs = { league: 0, data: 0, qa: 0 };
-        let cachedInquiryHistory = null; // 履歴キャッシュ用
+        let cachedInquiryHistory = null;
 
         function showMainPage(pageId, element) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -158,16 +158,11 @@
             
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
-                // アイコン文字列の整形。Q&AとMy Pageは明示的に指定
-                let type = item.innerText.toLowerCase().trim();
-                if(type === 'q&a') type = 'qa';
-                if(type === 'my page') type = 'mypage';
+                const type = item.getAttribute('data-type');
                 item.querySelector('img').src = `icon-g-${type}.svg`;
             });
             element.classList.add('active');
-            let activeType = element.innerText.toLowerCase().trim();
-            if(activeType === 'q&a') activeType = 'qa';
-            if(activeType === 'my page') activeType = 'mypage';
+            const activeType = element.getAttribute('data-type');
             element.querySelector('img').src = `icon-b-${activeType}.svg`;
             
             if(pageId === 'home') initHome();
@@ -217,22 +212,14 @@
             const container = document.getElementById(`nav-${sectionId}`);
             if (!container) return;
             activeSubTabs[sectionId] = index;
-
             const tabs = container.getElementsByClassName('sub-tab');
             const slider = container.querySelector('.slider');
             const tabWidth = (container.offsetWidth - 20) / tabs.length;
-            
             slider.style.width = `${tabWidth}px`;
             slider.style.left = `${(tabWidth * index) + 10}px`;
-            
             for (let t of tabs) t.classList.remove('active');
             tabs[index].classList.add('active');
-
             if(sectionId === 'qa') renderQAContent(index);
-            else {
-                const content = document.getElementById(`${sectionId}-content`);
-                if(content) content.innerText = `${sectionId} - Tab ${index + 1} 内容`;
-            }
         }
 
         // --- Q&A 制御 ---
@@ -270,7 +257,7 @@
                 if(res.success) {
                     alert("送信が完了しました");
                     document.getElementById('qa-body').value = "";
-                    cachedInquiryHistory = null; // 送信後はキャッシュクリアして再取得させる
+                    cachedInquiryHistory = null;
                 } else { alert("失敗しました"); }
             } catch (e) { alert("エラー"); }
             setLoading('btn-qa-send', false);
